@@ -3,7 +3,28 @@
 # Full configuration options can be found
 # at https://www.consul.io/docs/agent/options#configuration_files
 
-# data_dir
+# This flag controls the datacenter in which the agent is running. If not provided,
+# it defaults to "dc1". Consul has first-class support for multiple datacenters, but
+# it relies on proper configuration. Nodes in the same datacenter should be on a
+# single LAN.
+datacenter = "dc1"
+
+# This designates the datacenter which is authoritative for ACL information, intentions
+# and is the root Certificate Authority for Connect. It must be provided to enable ACLs.
+# All servers and datacenters must agree on the primary datacenter. Setting it on the
+# servers is all you need for cluster-level enforcement, but for the APIs to forward
+# properly from the clients, it must be set on them too. In Consul 0.8 and later, this
+# also enables agent-level enforcement of ACLs.
+primary_datacenter = "dc1"
+
+# The name of this node in the cluster. This must be unique within the cluster. By
+# default this is the hostname of the machine.
+node_name = "{{ inventory_hostname | mandatory }}"
+
+# This object allows associating arbitrary metadata key/value pairs with the local
+# node, which can then be used for filtering results from certain catalog endpoints.
+node_meta = {}
+
 # This flag provides a data directory for the agent to store state. This is required
 # for all agents. The directory should be durable across reboots. This is especially
 # critical for agents that are running in server mode as they must be able to persist
@@ -12,11 +33,175 @@
 # not be suitable.
 data_dir = "/opt/consul"
 
-# Bind addr
+# Disables automatic checking for security bulletins and new version releases.
+disable_update_check = true
+
+# This flag enables logging to syslog. This is only supported on Linux and OSX. It
+# will result in an error if provided on Windows.
+enable_syslog = true
+
+# The level of logging to show after the Consul agent has started. This defaults
+# to "info". The available log levels are "trace", "debug", "info", "warn",
+# and "err".
+log_level = "info"
+
+# The address to which Consul will bind client interfaces, including the HTTP and DNS
+# servers. By default, this is "127.0.0.1", allowing only loopback connections. In
+# Consul 1.0 and later this can be set to a space-separated list of addresses to bind
+# to, or a go-sockaddr template that can potentially resolve to multiple addresses.
+client_addr = "0.0.0.0" # "127.0.0.1"
+
+# Allows setting bind addresses. The following keys are valid:
+# dns   - The DNS server. Defaults to client_addr
+# http  - The HTTP API. Defaults to client_addr
+# https - The HTTPS API. Defaults to client_addr
+# grpc  - The gRPC API. Defaults to client_addr
+#addresses {
+#  dns   = "0.0.0.0"
+#  http  = "0.0.0.0"
+#  grpc  = "0.0.0.0"
+#}
+
+# This flag provides addresses of upstream DNS servers that are used to recursively
+# resolve queries if they are not inside the service domain for Consul.
+recursors = [
+  "1.0.0.1",
+  "1.1.1.1",
+  "8.8.4.4",
+  "8.8.8.8",
+]
+
+# This is a nested object that allows setting the bind ports for the following keys:
+ports {
+  # The DNS server, -1 to disable. Default 8600. TCP and UDP.
+  dns = {{ consul_dns_port }}
+
+  # The HTTP API, -1 to disable. Default 8500. TCP only.
+  http = {{ consul_http_port }}
+
+  # The HTTPS API, -1 to disable. Default -1 (disabled). We recommend using 8501 for
+  # https by convention as some tooling will work automatically with this.
+  https = -1
+
+  # The gRPC API, -1 to disable. Default -1 (disabled). We recommend using 8502 for
+  # grpc by convention as some tooling will work automatically with this. This is
+  # set to 8502 by default when the agent runs in -dev mode. Currently gRPC is only
+  # used to expose Envoy xDS API to Envoy proxies.
+  grpc = {{ consul_grpc_port }}
+
+  # The Serf LAN port. Default 8301. TCP and UDP. Equivalent to the -serf-lan-port
+  # command line flag.
+  serf_lan = {{ consul_serf_lan_port }}
+
+  # The Serf WAN port. Default 8302. Equivalent to the -serf-wan-port command line
+  # flag. Set to -1 to disable.
+  # Note: this will disable WAN federation which is not recommended. Various catalog
+  # and WAN related endpoints will return errors or empty results. TCP and UDP.
+  serf_wan = {{ consul_serf_wan_port }}
+
+  # Server RPC address. Default 8300. TCP only.
+  server = {{ consul_rpc_port }}
+}
+
+ui_config {
+  # Enables the built-in web UI server and the required HTTP routes. This eliminates
+  # the need to maintain the Consul web UI files separately from the binary.
+  enabled = true
+}
+
+# Describe self instance as an HTTP service with Consul UI (is needed for the
+# integration with Traefik).
+service {
+  id = "consul-ui"
+  name = "consul-ui"
+  address = "{{ private_ip | mandatory }}"
+  port = {{ consul_http_port }}
+
+  # https://www.consul.io/docs/discovery/checks
+  checks = [{
+    id = "consul-http-ui"
+    service_id = "consul-ui"
+    http = "http://{{ private_ip | mandatory }}:{{ consul_http_port }}/ui/"
+    method = "GET"
+    interval = "5s"
+    timeout = "2s"
+  },{
+    id = "consul-dns"
+    service_id = "consul-ui"
+    tcp = "127.0.0.1:{{ consul_dns_port }}"
+    interval = "5s"
+    timeout = "1s"
+  }]
+}
+
+{% if consul_bootstrap %}
+# This flag is used to control if an agent is in server or client mode. When provided,
+# an agent will act as a Consul server. Each Consul cluster must have at least one
+# server and ideally no more than 5 per datacenter. All servers participate in the Raft
+# consensus algorithm to ensure that transactions occur in a consistent, linearizable
+# manner. Transactions modify cluster state, which is maintained on all server nodes to
+# ensure availability in the case of node failure. Server nodes also participate in a
+# WAN gossip pool with server nodes in other datacenters. Servers act as gateways to
+# other datacenters and forward traffic as appropriate.
+server = true
+{% endif %}
+
+# Added in Consul 0.8, this object allows a number of sub-keys to be set which can
+# configure operator-friendly settings for Consul servers. When these keys are provided
+# as configuration, they will only be respected on bootstrapping.
+autopilot {
+  # This controls the automatic removal of dead server nodes periodically and whenever
+  # a new server is added to the cluster. Defaults to true.
+  cleanup_dead_servers = true
+
+  # Controls the maximum amount of time a server can go without contact from the leader
+  # before being considered unhealthy. Must be a duration value such as 10s. Defaults to 200ms.
+  last_contact_threshold = "2s"
+
+  # Sets the minimum number of servers necessary in a cluster. Autopilot will stop pruning
+  # dead servers when this minimum is reached. There is no default.
+  #min_quorum = 3
+
+  # Controls the minimum amount of time a server must be stable in the 'healthy' state
+  # before being added to the cluster. Only takes effect if all servers are running Raft
+  # protocol version 3 or higher. Must be a duration value such as 30s. Defaults to 10s.
+  server_stabilization_time = "10s"
+}
+
+# Enable checks when they are defined in the local configuration files.
+#enable_local_script_checks = true
+
 # You may use IPv4 or IPv6 but if you have multiple interfaces you must be explicit.
 #bind_addr = "[::]" # Listen on all IPv6
 #bind_addr = "0.0.0.0" # Listen on all IPv4
 bind_addr = "{{ private_ip | mandatory }}"
 
-# Advertise addr - if you want to point clients to a different address than bind or LB.
-#advertise_addr = "127.0.0.1"
+# Specifies the secret key to use for encryption of Consul network traffic. This key must
+# be 32-bytes that are Base64-encoded. The easiest way to create an encryption key is to
+# use consul keygen. All nodes within a cluster must share the same encryption key to
+# communicate. The provided key is automatically persisted to the data directory and loaded
+# automatically whenever the agent is restarted. This means that to encrypt Consul's gossip
+# protocol, this option only needs to be provided once on each agent's initial startup
+# sequence. If it is provided after Consul has been initialized with an encryption key,
+# then the provided key is ignored and a warning will be displayed.
+encrypt = "{{ consul_secret_key | mandatory }}"
+
+# When provided, Consul will ignore a previous leave and attempt to rejoin the cluster
+# when starting. By default, Consul treats leave as a permanent intent and does not attempt
+# to join the cluster again when starting. This flag allows the previous state to be used
+# to rejoin the cluster.
+rejoin_after_leave = true
+
+# Similar to -join but allows retrying a join until it is successful. Once it joins
+# successfully to a member in a list of members it will never attempt to join again.
+# Agents will then solely maintain their membership via gossip. This is useful for
+# cases where you know the address will eventually be available. This option can be
+# specified multiple times to specify multiple agents to join. The value can contain
+# IPv4, IPv6, or DNS addresses. In Consul 1.1.0 and later this can be set to a go-sockaddr
+# template. If Consul is running on the non-default Serf LAN port, this must be specified
+# as well. IPv6 must use the "bracketed" syntax. If multiple values are given, they are
+# tried and retried in the order listed until the first succeeds. Here are some examples:
+#retry_join = ["consul.domain.internal"]
+#retry_join = ["10.0.4.67"]
+#retry_join = ["[::1]:8301"]
+#retry_join = ["consul.domain.internal", "10.0.4.67"]

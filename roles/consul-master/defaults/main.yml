@@ -5,3 +5,14 @@ consul_version: 1.12.3
 
 consul_bin_dir: /usr/local/share/consul
 consul_bin: /usr/bin/consul
+
+consul_dns_port: 8600      # DNS server (-1 to disable, default 8600, TCP and UDP)
+consul_http_port: 8500     # HTTP API (-1 to disable, default 8500, TCP only)
+consul_grpc_port: 8502     # gRPC API (-1 to disable, default -1)
+consul_serf_lan_port: 8301 # Serf LAN port (default 8301, TCP and UDP)
+consul_serf_wan_port: 8302 # Serf WAN port (default 8302, TCP and UDP)
+consul_rpc_port: 8300      # Server RPC (default 8300, TCP only)
+
+consul_domain_name: consul.local
+consul_bootstrap: false
+consul_secret_key: "" # Generate your own key using following command: `docker run --rm consul:latest keygen`

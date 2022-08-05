@@ -3,3 +3,5 @@
 ansible_user: user
 ansible_port: 202 # aka SSH port
 ansible_python_interpreter: /usr/bin/python3
+
+consul_domain_name: consul.local.iddqd.uk
