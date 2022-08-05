@@ -13,13 +13,13 @@
     state: started
     enabled: true
 
-#- name: Get service facts
-#  ansible.builtin.service_facts:
+#  - name: Get service facts
+#    ansible.builtin.service_facts:
 #
-#- name: Wait for some time
-#  ansible.builtin.pause: {seconds: 3}
+#  - name: Wait for some time
+#    ansible.builtin.pause: {seconds: 3}
 #
-#- name: Assert consul service is started
-#  ansible.builtin.assert:
-#    that: ansible_facts.services["consul.service"] is defined
-#    fail_msg: "Consul is not started"
+#  - name: Assert consul service is started
+#    ansible.builtin.assert:
+#      that: ansible_facts.services["consul.service"] is defined
+#      fail_msg: "Consul is not started"
