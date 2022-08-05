@@ -1,0 +1,15 @@
+---
+
+- name: Create "os upgraded" lock file # run only once
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/apt/os-upgraded.lock
+    content: 'ansible'
+    mode: 0640
+    owner: root
+    group: root
+    force: false
+  notify: [upgrade os, reboot machine]
+
+- name: Force all notified handlers
+  ansible.builtin.meta: flush_handlers

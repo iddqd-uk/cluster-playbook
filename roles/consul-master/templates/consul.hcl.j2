@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+
+# Full configuration options can be found
+# at https://www.consul.io/docs/agent/options#configuration_files
+
+# data_dir
+# This flag provides a data directory for the agent to store state. This is required
+# for all agents. The directory should be durable across reboots. This is especially
+# critical for agents that are running in server mode as they must be able to persist
+# cluster state. Additionally, the directory must support the use of filesystem
+# locking, meaning some types of mounted folders (e.g. VirtualBox shared folders) may
+# not be suitable.
+data_dir = "/opt/consul"
+
+# Bind addr
+# You may use IPv4 or IPv6 but if you have multiple interfaces you must be explicit.
+#bind_addr = "[::]" # Listen on all IPv6
+#bind_addr = "0.0.0.0" # Listen on all IPv4
+bind_addr = "{{ private_ip | mandatory }}"
+
+# Advertise addr - if you want to point clients to a different address than bind or LB.
+#advertise_addr = "127.0.0.1"

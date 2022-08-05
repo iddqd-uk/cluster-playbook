@@ -1,0 +1,22 @@
+---
+
+- name: Config file
+  become: true
+  ansible.builtin.template:
+    src: consul.hcl.j2
+    dest: /etc/consul.d/consul.hcl
+    owner: consul
+    group: consul
+    mode: 0644
+    validate: "consul validate -config-format=hcl -quiet %s"
+  notify: [restart consul]
+
+- name: Environment file
+  become: true
+  ansible.builtin.template:
+    src: consul.env.j2
+    dest: /etc/consul.d/consul.env
+    owner: consul
+    group: consul
+    mode: 0644
+  notify: [restart consul]

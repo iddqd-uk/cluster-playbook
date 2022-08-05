@@ -1,0 +1,25 @@
+---
+
+- include: 10_install.yml
+- include: 20_configure.yml
+
+- name: Force all notified handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Ensure daemon is started and will start on boot
+  become: true
+  ansible.builtin.systemd:
+    name: consul
+    state: started
+    enabled: true
+
+#- name: Get service facts
+#  ansible.builtin.service_facts:
+#
+#- name: Wait for some time
+#  ansible.builtin.pause: {seconds: 3}
+#
+#- name: Assert consul service is started
+#  ansible.builtin.assert:
+#    that: ansible_facts.services["consul.service"] is defined
+#    fail_msg: "Consul is not started"

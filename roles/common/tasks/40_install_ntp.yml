@@ -1,0 +1,17 @@
+---
+
+- name: Install ntp
+  become: true
+  block:
+    - name: Install ntp
+      ansible.builtin.apt:
+        name: ntp
+        state: present
+        cache_valid_time: 21600 # in seconds, 60 × 60 × 6 = 6 hours
+        update_cache: true
+
+    - name: Ensure ntp started and will start on boot
+      ansible.builtin.service:
+        name: ntp
+        state: started
+        enabled: true

@@ -1,0 +1,5 @@
+---
+
+consul_version: 1.12.2 # TODO renovate
+consul_bin_dir: /usr/local/share/consul
+consul_bin: /usr/bin/consul

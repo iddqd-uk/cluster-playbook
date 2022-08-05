@@ -1,0 +1,10 @@
+---
+
+- name: Common tasks
+  hosts: [all]
+  tags: [common]
+  roles: [{role: common}]
+
+- name: Consul masters
+  hosts: [masters]
+  roles: [{role: consul-master, tags: [consul]}]

@@ -1,0 +1,10 @@
+# IDEs
+/.idea
+/.vscode
+
+# Temp dirs & trash
+/temp
+/tmp
+*vault_password*
+*.env
+.DS_Store

@@ -1,0 +1,13 @@
+---
+
+- name: Install packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - gpg
+      - gpg-agent
+      - sudo
+      - unzip
+    state: present
+    cache_valid_time: 21600 # in seconds, 60 × 60 × 6 = 6 hours
+    update_cache: true

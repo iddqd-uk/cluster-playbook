@@ -1,0 +1,13 @@
+---
+
+- name: restart ssh
+  become: true
+  ansible.builtin.service: {name: ssh, state: restarted}
+
+- name: upgrade os
+  become: true
+  ansible.builtin.apt: {upgrade: dist, update_cache: true}
+
+- name: reboot machine
+  become: true
+  ansible.builtin.reboot: {post_reboot_delay: 10}

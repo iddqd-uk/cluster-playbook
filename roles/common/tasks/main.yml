@@ -1,0 +1,9 @@
+---
+
+- include: 10_change_default_ssh_port.yml
+- include: 20_set_hostname.yml
+- include: 30_common_packages.yml
+- include: 40_install_ntp.yml
+- include: 50_set_timezone.yml
+- include: 60_update_motd.yml
+- include: 70_upgrade_os.yml
