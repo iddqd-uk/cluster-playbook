@@ -39,6 +39,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - run: echo "foobar" > ./vault_password
+      - run: echo "foobar" > ./.vault_password
 
       - run: ansible-lint --force-color ./site.yml
