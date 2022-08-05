@@ -1,6 +1,6 @@
 ---
 
-# renovate: name=hashicorp/consul versioning=regex:^v?(?<major>\d+)\.(?<minor>\d+)(?:\.(?<patch>\d+))?$
+# renovate: name=hashicorp/consul versioning=regex:^v?(?<major>\d+)\.(?<minor>\d+)(?:\.(?<patch>\d+))?$ extractVersion=^v?(?<version>.+)$
 consul_version: 1.12.2
 
 consul_bin_dir: /usr/local/share/consul
