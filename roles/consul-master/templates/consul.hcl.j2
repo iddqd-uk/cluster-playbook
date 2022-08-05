@@ -7,7 +7,7 @@
 # it defaults to "dc1". Consul has first-class support for multiple datacenters, but
 # it relies on proper configuration. Nodes in the same datacenter should be on a
 # single LAN.
-datacenter = "dc1"
+datacenter = "primary-dc"
 
 # This designates the datacenter which is authoritative for ACL information, intentions
 # and is the root Certificate Authority for Connect. It must be provided to enable ACLs.
@@ -15,7 +15,17 @@ datacenter = "dc1"
 # servers is all you need for cluster-level enforcement, but for the APIs to forward
 # properly from the clients, it must be set on them too. In Consul 0.8 and later, this
 # also enables agent-level enforcement of ACLs.
-primary_datacenter = "dc1"
+primary_datacenter = "primary-dc"
+
+# By default, Consul responds to DNS queries in the "consul." domain. This flag can
+# be used to change that domain. All queries in this domain are assumed to be handled
+# by Consul and will not be recursively resolved.
+domain = "consul."
+
+# Enable health checks that execute scripts when they are defined in the local
+# configuration files. Script checks defined in HTTP API registrations will still
+# not be allowed.
+enable_local_script_checks = true
 
 # The name of this node in the cluster. This must be unique within the cluster. By
 # default this is the hostname of the machine.
@@ -44,6 +54,11 @@ enable_syslog = true
 # to "info". The available log levels are "trace", "debug", "info", "warn",
 # and "err".
 log_level = "info"
+
+# If enabled, when the agent receives a TERM signal, it will send a Leave message to
+# the rest of the cluster and gracefully leave. On agents in client-mode, this defaults
+# to true and for agents in server-mode, this defaults to false.
+leave_on_terminate = true
 
 # The address to which Consul will bind client interfaces, including the HTTP and DNS
 # servers. By default, this is "127.0.0.1", allowing only loopback connections. In
@@ -118,23 +133,22 @@ service {
   port = {{ consul_http_port }}
 
   # https://www.consul.io/docs/discovery/checks
-  checks = [{
+  check {
     id = "consul-http-ui"
     service_id = "consul-ui"
     http = "http://{{ private_ip | mandatory }}:{{ consul_http_port }}/ui/"
     method = "GET"
     interval = "5s"
     timeout = "2s"
-  },{
-    id = "consul-dns"
-    service_id = "consul-ui"
-    tcp = "127.0.0.1:{{ consul_dns_port }}"
-    interval = "5s"
-    timeout = "1s"
-  }]
+  }
 }
 
-{% if consul_bootstrap %}
+# allows setting options for the Connect feature
+# https://www.consul.io/docs/agent/config/config-files#connect-parameters
+connect {
+  enabled = true
+}
+
 # This flag is used to control if an agent is in server or client mode. When provided,
 # an agent will act as a Consul server. Each Consul cluster must have at least one
 # server and ideally no more than 5 per datacenter. All servers participate in the Raft
@@ -144,6 +158,15 @@ service {
 # WAN gossip pool with server nodes in other datacenters. Servers act as gateways to
 # other datacenters and forward traffic as appropriate.
 server = true
+
+{% if consul_bootstrap %}
+# This flag is used to control if a server is in "bootstrap" mode. It is important
+# that no more than one server per datacenter be running in this mode. Technically,
+# a server in bootstrap mode is allowed to self-elect as the Raft leader. It is
+# important that only a single node is in this mode; otherwise, consistency cannot
+# be guaranteed as multiple nodes are able to self-elect. It is not recommended to
+# use this flag after a cluster has been bootstrapped.
+bootstrap = true
 {% endif %}
 
 # Added in Consul 0.8, this object allows a number of sub-keys to be set which can
@@ -201,7 +224,6 @@ rejoin_after_leave = true
 # template. If Consul is running on the non-default Serf LAN port, this must be specified
 # as well. IPv6 must use the "bracketed" syntax. If multiple values are given, they are
 # tried and retried in the order listed until the first succeeds. Here are some examples:
-#retry_join = ["consul.domain.internal"]
-#retry_join = ["10.0.4.67"]
-#retry_join = ["[::1]:8301"]
-#retry_join = ["consul.domain.internal", "10.0.4.67"]
+{% for host in consul_retry_join_hosts %}
+retry_join = ["{{ hostvars[host]['private_ip'] }}"] # {{ hostvars[host]['inventory_hostname'] }}
+{% endfor %}

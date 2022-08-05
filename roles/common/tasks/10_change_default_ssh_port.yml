@@ -25,10 +25,12 @@
         dest: /etc/ssh/sshd_config
         regexp: '^Port'
         line: 'Port {{ _new_ssh_port }}'
-      notify: [restart ssh]
+      register: _ssh_port_updated
 
-    - name: Force all notified handlers
-      ansible.builtin.meta: flush_handlers
+    - name: Restart SSH service
+      become: true
+      ansible.builtin.service: {name: ssh, state: restarted}
+      when: _ssh_port_updated.changed
 
     - name: 'Set SSH port to {{ _new_ssh_port }}'
       ansible.builtin.set_fact: {ansible_port: '{{ _new_ssh_port }}'}

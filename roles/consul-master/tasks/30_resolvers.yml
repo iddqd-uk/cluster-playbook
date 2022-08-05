@@ -1,0 +1,27 @@
+---
+
+- name: Install resolvconf package
+  become: true
+  ansible.builtin.apt:
+    name: resolvconf
+    state: present
+
+- name: Add local resolver into resolvers file
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/resolvconf/resolv.conf.d/head
+    line: nameserver 127.0.0.1
+    state: present
+  register: _resolvconf_updated
+
+- name: Reload resolvconf
+  become: true
+  ansible.builtin.shell: {cmd: /usr/sbin/service resolvconf reload}
+  when: _resolvconf_updated.changed
+
+- name: Ensure resolvconf started and will start on boot
+  become: true
+  ansible.builtin.service:
+    name: resolvconf
+    state: started
+    enabled: true

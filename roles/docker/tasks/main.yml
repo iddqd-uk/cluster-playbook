@@ -1,0 +1,17 @@
+# Docker installation tasks (docs: <https://docs.docker.com/engine/install/debian/>)
+---
+
+- include: 10_install.yml
+- include: 20_configure.yml
+- include: 25_consul.yml
+
+- name: Ensure Docker started and will start on boot
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Verify docker installation
+  become: true
+  changed_when: false
+  ansible.builtin.command: {cmd: docker run --rm hello-world}

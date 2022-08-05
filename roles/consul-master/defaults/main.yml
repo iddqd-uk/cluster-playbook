@@ -16,3 +16,4 @@ consul_rpc_port: 8300      # Server RPC (default 8300, TCP only)
 consul_domain_name: consul.local
 consul_bootstrap: false
 consul_secret_key: "" # Generate your own key using following command: `docker run --rm consul:latest keygen`
+consul_retry_join_hosts: [] # List of hosts (hostnames that are defined in the inventory) to join

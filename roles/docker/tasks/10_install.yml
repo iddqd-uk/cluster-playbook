@@ -1,0 +1,27 @@
+---
+
+- name: Add GPG apt Key
+  become: true
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
+    state: present
+
+- name: Add repository
+  become: true
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb https://download.docker.com/linux/{{ ansible_distribution | lower }}
+      {{ ansible_distribution_release | lower }} stable
+    filename: docker
+    state: present
+    update_cache: true
+
+- name: Install docker packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - 'docker-ce=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}'
+      - 'docker-ce-cli=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}'
+      - containerd.io
+    state: present
+    cache_valid_time: 21600 # in seconds, 60 × 60 × 6 = 6 hours

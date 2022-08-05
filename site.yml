@@ -5,6 +5,8 @@
   tags: [common]
   roles: [{role: common}]
 
-- name: Consul masters
-  hosts: [masters]
-  roles: [{role: consul-master, tags: [consul]}]
+- name: Install required software on each host
+  hosts: [all]
+  roles:
+    - {role: consul-master, tags: [consul]}
+    - {role: docker, tags: [docker]}

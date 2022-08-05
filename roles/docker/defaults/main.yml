@@ -1,0 +1,6 @@
+---
+
+# renovate: source=github-tags name=moby/moby
+docker_version: 20.10.16
+
+docker_metrics_port: 9323

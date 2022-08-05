@@ -13,6 +13,8 @@
     state: started
     enabled: true
 
+- include: 30_resolvers.yml
+
 #  - name: Get service facts
 #    ansible.builtin.service_facts:
 #
