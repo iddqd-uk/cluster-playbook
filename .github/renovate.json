@@ -8,11 +8,10 @@
     {
       "description": "Process playbook dependencies",
       "fileMatch": [
-        ".+\\.ya?ml$",
         ".+\\.ya?ml$"
       ],
       "matchStrings": [
-        "# renovate: source=(?<datasource>\\S+) name=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\n.*?[\"']?(?<currentValue>.*)[\"']?\n"
+        "# renovate: source=(?<datasource>\\S+) name=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\n.*[:=]\\s?[\"']?(?<currentValue>.*)[\"']?\n"
       ],
       "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
