@@ -3,5 +3,19 @@
   "extends": [
     "github>iddqd-uk/.github//renovate/default",
     ":rebaseStalePrs"
+  ],
+  "regexManagers": [
+    {
+      "description": "Process playbook dependencies",
+      "fileMatch": [
+        ".+\\.ya?ml$",
+        ".+\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "# renovate: source=(?<datasource>\\S+) name=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\n.*?[\"']?(?<currentValue>.*)[\"']?\n"
+      ],
+      "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
+    }
   ]
 }

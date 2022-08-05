@@ -1,5 +1,7 @@
 ---
 
-consul_version: 1.12.2 # TODO renovate
+# renovate: source=github-tags name=hashicorp/consul versioning=regex:^v?(?<major>\d+)\.(?<minor>\d+)(?:\.(?<patch>\d+))?$
+consul_version: 1.12.2
+
 consul_bin_dir: /usr/local/share/consul
 consul_bin: /usr/bin/consul
