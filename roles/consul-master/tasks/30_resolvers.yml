@@ -14,7 +14,7 @@
     state: present
   register: _resolvconf_updated
 
-- name: Reload resolvconf
+- name: Reload resolvconf # noqa no-handler command-instead-of-module command-instead-of-shell
   become: true
   ansible.builtin.shell: {cmd: /usr/sbin/service resolvconf reload}
   when: _resolvconf_updated.changed

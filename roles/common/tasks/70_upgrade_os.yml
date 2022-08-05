@@ -11,12 +11,12 @@
     force: false
   register: _os_need_to_be_upgraded
 
-- name: Upgrade OS
+- name: Upgrade OS # noqa no-handler
   become: true
   ansible.builtin.apt: {upgrade: dist, update_cache: true}
   when: _os_need_to_be_upgraded.changed
 
-- name: Reboot the machine
+- name: Reboot the machine # noqa no-handler
   become: true
   ansible.builtin.reboot: {post_reboot_delay: 10}
   when: _os_need_to_be_upgraded.changed
