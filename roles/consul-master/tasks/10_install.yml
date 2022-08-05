@@ -24,7 +24,7 @@
       ansible.builtin.get_url:
         url: 'https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_linux_amd64.zip'
         dest: '{{ _consul_tmp_dir.path }}/dist.zip'
-#        mode: 644
+        mode: 664
 
     - name: Extract files
       ansible.builtin.unarchive:
