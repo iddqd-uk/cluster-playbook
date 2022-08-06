@@ -1,7 +1,7 @@
 ---
 
 - name: Gathers facts about remote host
-  ansible.builtin.gather_facts: {}
+  ansible.builtin.gather_facts: {parallel: true}
 
 - name: Parse interfaces
   ansible.builtin.set_fact:

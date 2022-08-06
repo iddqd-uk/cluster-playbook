@@ -16,3 +16,5 @@ nomad_reserved_disk: 256 # MB
 nomad_node_class: ""
 
 nomad_secret_key: "" # Generate your own key using following command: `docker run --rm ghcr.io/resinstack/nomad:v1.3.2r0 operator keygen`
+nomad_retry_join_hosts: []
+nomad_acl_enabled: false

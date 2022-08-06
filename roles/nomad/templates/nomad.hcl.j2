@@ -71,9 +71,9 @@ ports {
 
 # Configures the Nomad agent to enable ACLs and tunes various ACL parameters.
 # https://www.nomadproject.io/docs/configuration/acl
-#acl {
-#  enabled = true
-#}
+acl {
+  enabled = {{nomad_acl_enabled | bool | string | lower }}
+}
 
 # The client stanza configures the Nomad agent to accept jobs as assigned by the Nomad
 # server, join the cluster, and specify driver-specific configuration.
@@ -112,6 +112,16 @@ client {
 
   # Specifies the name of the interface to force network fingerprinting on.
   network_interface = "{{ private_net_interface_name | mandatory }}"
+
+  # How the Nomad agent will discover and connect to Nomad servers.
+  server_join { # https://www.nomadproject.io/docs/configuration/server_join
+    retry_interval = "15s"
+    retry_join = [
+{% for host in nomad_retry_join_hosts %}
+      "{{ hostvars[host]['private_ip'] }}", # {{ hostvars[host]['inventory_hostname'] }}
+{% endfor %}
+    ]
+  }
 }
 
 # The server stanza configures the Nomad agent to operate in server mode to participate
@@ -122,9 +132,6 @@ server {
   # on this value being set.
   enabled = true
 
-  # Specifies if this server will generate events for its event stream.
-  enable_event_broker = true
-
   # Specifies the secret key to use for encryption of Nomad server's gossip network
   # traffic.
   encrypt = "{{ nomad_secret_key | mandatory }}"
@@ -133,11 +140,21 @@ server {
   # common to use the odd-numbered integers 3 or 5 for this value, depending on the
   # cluster size. A value of 1 does not provide any fault tolerance and is not
   # recommended for production use cases.
-  bootstrap_expect = 1
+  bootstrap_expect = {{ (nomad_retry_join_hosts | length) + 1 }}
 
   # https://www.nomadproject.io/docs/configuration/server#configuring-scheduler-config
   default_scheduler_config = {
     memory_oversubscription_enabled = true
+  }
+
+  # How the Nomad agent will discover and connect to Nomad servers.
+  server_join { # https://www.nomadproject.io/docs/configuration/server_join
+    retry_interval = "15s"
+    retry_join = [
+{% for host in nomad_retry_join_hosts %}
+      "{{ hostvars[host]['private_ip'] }}", # {{ hostvars[host]['inventory_hostname'] }}
+{% endfor %}
+    ]
   }
 }
 
@@ -146,15 +163,6 @@ ui {
   # Specifies whether the web UI is enabled. If disabled, the /ui/ path will return
   # an empty web page.
   enabled = true
-
-  # Configures integrations between the Nomad web UI and the Consul web UI.
-  consul {
-{% if consul_domain_name | length > 0 %}
-    # Specifies the full base URL to a Consul web UI. This URL is used to build links
-    # from the Nomad web UI to a Consul web UI.
-    ui_url = "{{ consul_domain_name }}"
-{% endif %}
-  }
 }
 
 # Configures Nomad's publication of metrics and telemetry to third-party systems.
@@ -192,7 +200,7 @@ consul {
   # servers by searching for the Consul service name defined in the
   # server_service_name option. This search only happens if the server does not have
   # a leader.
-  server_auto_join = true
+  server_auto_join = false
 
   # Specifies the name of the service in Consul for the Nomad servers.
   server_service_name = "nomad"
@@ -200,7 +208,7 @@ consul {
   # Specifies if the Nomad clients should automatically discover servers in the same
   # region by searching for the Consul service name defined in the server_service_name
   # option.
-  client_auto_join = true
+  client_auto_join = false
 
   # Specifies the name of the service in Consul for the Nomad clients.
   client_service_name = "nomad-client"
