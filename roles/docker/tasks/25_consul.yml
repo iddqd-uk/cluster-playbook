@@ -15,7 +15,7 @@
           id = "docker-metrics-port-check"
           service_id = "docker"
           tcp = "{{ private_ip | mandatory }}:{{ docker_metrics_port }}"
-          interval = "5s"
+          interval = "15s"
           timeout = "1s"
         }]
       }

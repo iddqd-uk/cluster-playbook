@@ -8,5 +8,6 @@
 - name: Install required software on each host
   hosts: [all]
   roles:
-    - {role: consul-master, tags: [consul]}
+    - {role: consul, tags: [consul]}
     - {role: docker, tags: [docker]}
+    - {role: nomad, tags: [nomad]}

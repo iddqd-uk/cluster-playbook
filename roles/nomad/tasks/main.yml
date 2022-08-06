@@ -1,0 +1,15 @@
+---
+
+- include: 10_install.yml
+- include: 20_configure.yml
+- include: 25_consul.yml
+
+- name: Force all notified handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Ensure daemon is started and will start on boot
+  become: true
+  ansible.builtin.systemd:
+    name: nomad
+    state: started
+    enabled: true

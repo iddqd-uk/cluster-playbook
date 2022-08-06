@@ -79,7 +79,7 @@
     group: consul
     state: present
 
-- name: Create directories directories
+- name: Create directories
   become: true
   ansible.builtin.file:
     path: '{{ item }}'

@@ -1,0 +1,13 @@
+---
+
+- name: reload systemd
+  become: true
+  ansible.builtin.systemd: {daemon_reload: true}
+
+- name: restart nomad
+  become: true
+  ansible.builtin.service: {name: nomad, state: restarted}
+
+- name: restart consul
+  become: true
+  ansible.builtin.service: {name: consul, state: restarted}

@@ -1,0 +1,53 @@
+---
+
+- name: Register UI as a service for Consul
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/consul.d/nomad-ui.hcl
+    content: |
+      service {
+        id = "nomad-ui"
+        name = "nomad-ui"
+        address = "{{ private_ip | mandatory }}" # same as `bind_addr`
+        port = {{ nomad_http_port }}
+
+        # https://www.consul.io/docs/discovery/checks
+        check = {
+          id = "http-nomad-ui-ping"
+          service_id = "nomad-ui"
+          http = "http://{{ private_ip | mandatory }}:{{ nomad_http_port }}/ui/"
+          method = "GET"
+          interval = "10s"
+          timeout = "3s"
+        }
+      }
+    owner: nomad
+    group: nomad
+    mode: 0644
+  notify: [restart consul]
+
+- name: Register API as a service for Consul
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/consul.d/nomad-api.hcl
+    content: |
+      service {
+        id = "nomad-api"
+        name = "nomad-api"
+        address = "{{ private_ip | mandatory }}" # same as `bind_addr`
+        port = {{ nomad_http_port }}
+
+        # https://www.consul.io/docs/discovery/checks
+        check = {
+          id = "http-nomad-api-ping"
+          service_id = "nomad-api"
+          http = "http://{{ private_ip | mandatory }}:{{ nomad_http_port }}/v1/status/leader"
+          method = "GET"
+          interval = "5s"
+          timeout = "3s"
+        }
+      }
+    owner: nomad
+    group: nomad
+    mode: 0644
+  notify: [restart consul]

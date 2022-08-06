@@ -138,8 +138,8 @@ service {
     service_id = "consul-ui"
     http = "http://{{ private_ip | mandatory }}:{{ consul_http_port }}/ui/"
     method = "GET"
-    interval = "5s"
-    timeout = "2s"
+    interval = "10s"
+    timeout = "3s"
   }
 }
 

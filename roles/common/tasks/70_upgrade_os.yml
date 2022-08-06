@@ -18,5 +18,16 @@
 
 - name: Reboot the machine # noqa no-handler
   become: true
-  ansible.builtin.reboot: {post_reboot_delay: 10}
+  ansible.builtin.reboot: {}
   when: _os_need_to_be_upgraded.changed
+  register: _os_rebooted
+
+- name: Wait for SSH service to start
+  ansible.builtin.wait_for:
+    port: '{{ ansible_port }}'
+    state: started
+    host: '{{ ansible_host }}'
+    timeout: 60
+    sleep: 0
+  connection: local
+  when: _os_rebooted.changed
