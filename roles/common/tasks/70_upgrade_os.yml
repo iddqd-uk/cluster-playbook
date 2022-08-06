@@ -22,7 +22,7 @@
   when: _os_need_to_be_upgraded.changed
   register: _os_rebooted
 
-- name: Wait for SSH service to start
+- name: Wait for SSH service to start # noqa no-handler
   ansible.builtin.wait_for:
     port: '{{ ansible_port }}'
     state: started
