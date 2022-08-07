@@ -34,4 +34,6 @@
 
     - name: 'Set SSH port to {{ _new_ssh_port }}'
       ansible.builtin.set_fact: {ansible_port: '{{ _new_ssh_port }}'}
-  always: []
+  always:
+    - name: Gathers facts about remote host # make an attempt to connect
+      ansible.builtin.gather_facts: {}

@@ -15,6 +15,9 @@ nomad_reserved_memory: 128 # MB
 nomad_reserved_disk: 256 # MB
 nomad_node_class: ""
 
+nomad_consul_server_service_name: "nomad"
+nomad_consul_client_service_name: "nomad-client"
+
 nomad_secret_key: "" # Generate your own key using following command: `docker run --rm ghcr.io/resinstack/nomad:v1.3.2r0 operator keygen`
 nomad_retry_join_hosts: []
 nomad_acl_enabled: false

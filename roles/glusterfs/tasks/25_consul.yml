@@ -11,6 +11,7 @@
         id = "{{ inventory_hostname }}-glusterfs"
         address = "{{ private_ip | mandatory }}"
         port = 24007
+        tags = ["tcp"]
 
         # https://www.consul.io/docs/discovery/checks
         checks = [

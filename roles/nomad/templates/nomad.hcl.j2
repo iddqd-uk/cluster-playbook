@@ -210,7 +210,7 @@ consul {
   server_auto_join = false
 
   # Specifies the name of the service in Consul for the Nomad servers.
-  server_service_name = "nomad"
+  server_service_name = "{{ nomad_consul_server_service_name }}"
 
   # Specifies if the Nomad clients should automatically discover servers in the same
   # region by searching for the Consul service name defined in the server_service_name
@@ -218,7 +218,7 @@ consul {
   client_auto_join = false
 
   # Specifies the name of the service in Consul for the Nomad clients.
-  client_service_name = "nomad-client"
+  client_service_name = "{{ nomad_consul_client_service_name }}"
 
   # Specifies optional Consul tags to be registered with the Nomad server and agent
   # services.

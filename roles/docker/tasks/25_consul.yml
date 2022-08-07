@@ -9,6 +9,7 @@
         name = "docker"
         id = "{{ inventory_hostname }}-docker"
         address = "{{ private_ip | mandatory }}"
+        tags = ["http"]
 
         # https://www.consul.io/docs/discovery/checks
         checks = [{

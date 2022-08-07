@@ -1,6 +1,7 @@
 ---
 
 - name: Common tasks
+  gather_facts: false
   hosts: [all]
   tags: [common]
   roles: [{role: common}]

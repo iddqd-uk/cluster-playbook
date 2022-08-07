@@ -124,23 +124,45 @@ ui_config {
   enabled = true
 }
 
-# Describe self instance as an HTTP service with Consul UI (is needed for the
-# integration with Traefik).
+# Describe self instance as an HTTP service with Consul UI.
 service {
-  name = "consul-ui"
-  id = "{{ inventory_hostname }}-consul-ui"
+  name = "consul"
   address = "{{ private_ip | mandatory }}"
-  port = {{ consul_http_port }}
+  tags = ["dns", "grpc", "http"]
 
   # https://www.consul.io/docs/discovery/checks
-  check {
-    service_id = "consul-ui"
-    id = "{{ inventory_hostname }}-consul-http-ui"
+  checks = [{
+    service_id = "consul"
+    id = "httpUIHealth"
     http = "http://{{ private_ip | mandatory }}:{{ consul_http_port }}/ui/"
     method = "GET"
     interval = "10s"
     timeout = "3s"
-  }
+  },{
+    service_id = "consul"
+    id = "grpcPrivateHealth"
+    tcp = "{{ private_ip | mandatory }}:{{ consul_grpc_port }}"
+    interval = "10s"
+    timeout = "3s"
+  },{
+    service_id = "consul"
+    id = "grpcLocalHealth"
+    tcp = "127.0.0.1:{{ consul_grpc_port }}"
+    interval = "10s"
+    timeout = "3s"
+  },{
+    service_id = "consul"
+    id = "dnsPrivatePortHealth"
+    tcp = "{{ private_ip | mandatory }}:{{ consul_dns_port }}"
+    interval = "10s"
+    timeout = "3s"
+  },{
+    service_id = "consul"
+    id = "dnsLocalPortHealth"
+    tcp = "127.0.0.1:{{ consul_dns_port }}"
+    interval = "10s"
+    timeout = "3s"
+  }]
 }
 
 # allows setting options for the Connect feature
