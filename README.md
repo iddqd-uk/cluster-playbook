@@ -22,13 +22,7 @@ In addition, I decided to use the following applications:
 
 - [Gluster][gluster] (persistent data across each node in the cluster, e.g. for the Nomad containers)
 
-Visually, the cluster diagram can be represented as follows:
-
-<div align="center">
-<img src="https://user-images.githubusercontent.com/7326800/183288705-fe4ffbc8-557c-4c52-ac3e-34c81c8b1fcc.png" width="500"/>
-</div>
-
-Since this is a simple cluster (minimal nodes count is 2), Nomad, Consul and Gluster are used as a server and client on each machine simultaneously. Load balancing, logs aggregation, monitoring, alerting, and other services are not included - to keep this playbook simple I prefer to install them separately.
+Since this is a simple cluster (minimal nodes count is 2), Nomad, Consul and Gluster are used as a server and client on each machine simultaneously. Load balancing, logs aggregation, monitoring, alerting, and other services are not included - to keep this playbook simple I prefer to install them separately (as a services in docker containers).
 
 ## Requirements
 
@@ -50,6 +44,8 @@ After the checklist passing, you can run the playbook:
 $ ansible-playbook ./site.yml -i ./inventory/local # for local
 $ ansible-playbook ./site.yml -i ./inventory/prod  # for production
 ```
+
+> ⚠ Some services bind on all interfaces (`0.0.0.0`), so you should protect them with firewall rules, or use an external firewall!
 
 ### Secrets
 
