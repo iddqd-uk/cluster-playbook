@@ -45,7 +45,7 @@ $ ansible-playbook ./site.yml -i ./inventory/local # for local
 $ ansible-playbook ./site.yml -i ./inventory/prod  # for production
 ```
 
-> ⚠ Some services bind on all interfaces (`0.0.0.0`), so you should protect them with firewall rules, or use an external firewall!
+> :warning: Some services bind on all interfaces (`0.0.0.0`), so you should protect them with firewall rules, or use an external firewall!
 
 ### Secrets
 
