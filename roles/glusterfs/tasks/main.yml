@@ -1,0 +1,27 @@
+---
+
+- include: 10_install.yml
+
+- name: Ensure glusterd started and will start on boot
+  become: true
+  ansible.builtin.service:
+    name: glusterd
+    state: started
+    enabled: true
+  register: _glusterd_started
+
+- name: Wait for some seconds
+  ansible.builtin.pause: {seconds: 5} # noqa no-handler
+  when: _glusterd_started.changed
+
+- name: Join servers to each-other (peer probe)
+  become: true
+  # Docs: <https://docs.ansible.com/ansible/latest/collections/gluster/gluster/gluster_peer_module.html>
+  gluster.gluster.gluster_peer:
+    state: present
+    nodes: ["{{ hostvars[item]['private_ip'] }}"]
+  with_items: '{{ glusterfs_join_hosts }}'
+  run_once: true # execute only on one machine (it is not required to run on each)
+
+- include: 20_volumes.yml
+- include: 25_consul.yml

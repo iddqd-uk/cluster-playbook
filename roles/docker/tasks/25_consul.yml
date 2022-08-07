@@ -6,8 +6,8 @@
     dest: /etc/consul.d/docker.hcl
     content: |
       service {
-        id = "docker"
         name = "docker"
+        id = "{{ inventory_hostname }}-docker"
         address = "{{ private_ip | mandatory }}"
 
         # https://www.consul.io/docs/discovery/checks
@@ -19,7 +19,7 @@
           timeout = "1s"
         }]
       }
-    owner: root
-    group: docker
+    owner: consul
+    group: consul
     mode: 0644
   notify: [restart consul]

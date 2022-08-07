@@ -10,7 +10,7 @@
 
 ## 📖 Overview
 
-This repository contains [Ansible][ansible] playbook for installing and configuring the Nomad cluster for the `iddqd.uk`. Where possible, it is automated with bots and GitHub actions.
+This repository contains [Ansible][ansible] playbook for installing and configuring the dead simple Nomad cluster for the `iddqd.uk`. Where possible, it is automated with bots and GitHub actions.
 
 ## 📁 Directories & files
 
@@ -36,8 +36,9 @@ This Git repository contains the following directories & files:
 
 Please, follow the next checklist:
 
-- [ ] Make a file `./.vault_password` with the [vault password][ansible_vault]
-- [ ] Check the inventory file (for required environment - `local|production`)
+- [x] Make a file `./.vault_password` with the [vault password][ansible_vault]
+- [x] Install playbook requirements - `ansible-galaxy install -r ./requirements.yml`
+- [x] Check the inventory file (for required environment - `local|production`)
 
 After the checklist passing, you can run the playbook:
 
@@ -72,6 +73,10 @@ localhost | SUCCESS => {
     "nomad.secret_key": "your secret value"
 }
 ```
+
+## Pretty cool links
+
+- [Why you should take a look at Nomad before jumping on Kubernetes](https://atodorov.me/2021/02/27/why-you-should-take-a-look-at-nomad-before-jumping-on-kubernetes/)
 
 [badge_release_version]:https://img.shields.io/github/release/iddqd-uk/cluster-playbook.svg?maxAge=30
 [badge_build]:https://img.shields.io/github/workflow/status/iddqd-uk/cluster-playbook/tests/master

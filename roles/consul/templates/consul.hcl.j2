@@ -7,7 +7,7 @@
 # it defaults to "dc1". Consul has first-class support for multiple datacenters, but
 # it relies on proper configuration. Nodes in the same datacenter should be on a
 # single LAN.
-datacenter = "primary-dc"
+datacenter = "{{ datacenter_name | mandatory }}"
 
 # This designates the datacenter which is authoritative for ACL information, intentions
 # and is the root Certificate Authority for Connect. It must be provided to enable ACLs.
@@ -15,7 +15,7 @@ datacenter = "primary-dc"
 # servers is all you need for cluster-level enforcement, but for the APIs to forward
 # properly from the clients, it must be set on them too. In Consul 0.8 and later, this
 # also enables agent-level enforcement of ACLs.
-primary_datacenter = "primary-dc"
+primary_datacenter = "{{ datacenter_name | mandatory }}"
 
 # By default, Consul responds to DNS queries in the "consul." domain. This flag can
 # be used to change that domain. All queries in this domain are assumed to be handled
@@ -127,15 +127,15 @@ ui_config {
 # Describe self instance as an HTTP service with Consul UI (is needed for the
 # integration with Traefik).
 service {
-  id = "consul-ui"
   name = "consul-ui"
+  id = "{{ inventory_hostname }}-consul-ui"
   address = "{{ private_ip | mandatory }}"
   port = {{ consul_http_port }}
 
   # https://www.consul.io/docs/discovery/checks
   check {
-    id = "consul-http-ui"
     service_id = "consul-ui"
+    id = "{{ inventory_hostname }}-consul-http-ui"
     http = "http://{{ private_ip | mandatory }}:{{ consul_http_port }}/ui/"
     method = "GET"
     interval = "10s"

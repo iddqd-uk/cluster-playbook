@@ -1,0 +1,29 @@
+---
+
+- name: Register glusterfs server as a service for Consul
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/consul.d/glusterfs.hcl
+    # Docs: <https://docs.gluster.org/en/main/Administrator-Guide/Consul/>
+    content: |
+      service {
+        name = "glusterfs"
+        id = "{{ inventory_hostname }}-glusterfs"
+        address = "{{ private_ip | mandatory }}"
+        port = 24007
+
+        # https://www.consul.io/docs/discovery/checks
+        checks = [
+          {
+            id = "glusterfs-tcp"
+            service_id = "glusterfs"
+            interval = "10s"
+            tcp = "127.0.0.1:{{ glusterfs_daemon_port | default(24007) }}"
+            timeout = "5s"
+          },
+        ]
+      }
+    group: consul
+    owner: consul
+    mode: 0644
+  notify: [restart consul]

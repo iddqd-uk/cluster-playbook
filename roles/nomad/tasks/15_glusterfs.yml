@@ -1,0 +1,29 @@
+---
+
+- name: Create a directory for Nomad persistent data
+  become: true
+  ansible.builtin.file:
+    path: /opt/nomad/storage-data
+    state: directory
+    group: nomad
+    owner: nomad
+    mode: 0750
+
+- name: Ensure GlusterFS volume is mounted
+  become: true
+  ansible.posix.mount:
+    path: /opt/nomad/storage-data
+    src: "127.0.0.1:nomad-storage"
+    fstype: glusterfs
+    opts: "defaults,_netdev"
+    state: mounted
+    boot: true
+
+- name: Fix directory permissions
+  become: true
+  ansible.builtin.file:
+    path: /opt/nomad/storage-data
+    state: directory
+    group: nomad
+    owner: nomad
+    mode: 0750

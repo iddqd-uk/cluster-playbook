@@ -1,6 +1,7 @@
 ---
 
 - include: 10_install.yml
+- include: 15_glusterfs.yml
 - include: 20_configure.yml
 - include: 25_consul.yml
 

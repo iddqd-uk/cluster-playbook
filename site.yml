@@ -7,7 +7,8 @@
 
 - name: Install required software on each host
   hosts: [all]
-  roles:
+  roles: # order is important
     - {role: consul, tags: [consul]}
+    - {role: glusterfs, tags: [glusterfs]}
     - {role: docker, tags: [docker]}
     - {role: nomad, tags: [nomad]}

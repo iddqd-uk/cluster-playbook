@@ -6,8 +6,8 @@
     dest: /etc/consul.d/nomad-ui.hcl
     content: |
       service {
-        id = "nomad-ui"
         name = "nomad-ui"
+        id = "{{ inventory_hostname }}-nomad-ui"
         address = "{{ private_ip | mandatory }}" # same as `bind_addr`
         port = {{ nomad_http_port }}
 
@@ -21,8 +21,8 @@
           timeout = "3s"
         }
       }
-    owner: nomad
-    group: nomad
+    owner: consul
+    group: consul
     mode: 0644
   notify: [restart consul]
 
@@ -32,8 +32,8 @@
     dest: /etc/consul.d/nomad-api.hcl
     content: |
       service {
-        id = "nomad-api"
         name = "nomad-api"
+        id = "{{ inventory_hostname }}-nomad-api"
         address = "{{ private_ip | mandatory }}" # same as `bind_addr`
         port = {{ nomad_http_port }}
 
@@ -47,7 +47,7 @@
           timeout = "3s"
         }
       }
-    owner: nomad
-    group: nomad
+    owner: consul
+    group: consul
     mode: 0644
   notify: [restart consul]

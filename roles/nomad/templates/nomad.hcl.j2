@@ -10,7 +10,7 @@ data_dir = "/opt/nomad"
 
 # Specifies the data center of the local agent. All members of a datacenter should share
 # a local LAN connection.
-datacenter = "primary-dc"
+datacenter = "{{ datacenter_name | mandatory }}"
 
 # Specifies the region the Nomad agent is a member of. A region typically maps to
 # a geographic region, for example us, with potentially multiple zones, which map
