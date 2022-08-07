@@ -9,4 +9,5 @@ datacenter_name: "primary-dc"
 consul_http_port: 8500
 consul_secret_key: "Ya8gOTDqQOwU/VZM6ZW1zzIjG4awADVlTEZ/Fi+MB9k="
 
+nomad_acl_enabled: true
 nomad_secret_key: "baLVhqjEKeUkJi4do1M9VfJbKRfdUp4n5/vpBwyJSJ0="

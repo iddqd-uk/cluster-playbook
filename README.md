@@ -24,13 +24,13 @@ In addition, I decided to use the following applications:
 
 Since this is a simple cluster (minimal nodes count is 2), Nomad, Consul and Gluster are used as a server and client on each machine simultaneously. Load balancing, logs aggregation, monitoring, alerting, and other services are not included - to keep this playbook simple I prefer to install them separately (as a services in docker containers).
 
-## Requirements
+## 🗒 Requirements
 
 - 2 (or more) machines
 - 2 network interfaces on each machine - public and private
 - Successfully tested on Debian 11 (amd64)
 
-## Running
+## 🚀 Running
 
 Please, follow the next checklist:
 
@@ -47,7 +47,7 @@ $ ansible-playbook ./site.yml -i ./inventory/prod  # for production
 
 > :warning: Some services bind on all interfaces (`0.0.0.0`), so you should protect them with firewall rules, or use an external firewall!
 
-### Secrets
+### 😎 Secrets
 
 For a making encrypted value in the playbook, you can use the following command (file with the vault password `./.vault_password` should exist):
 
@@ -67,12 +67,90 @@ Encryption successful
 And otherwise, for the secret reading you can:
 
 ```shell
-$ ansible localhost -m ansible.builtin.debug -a var="some.secret_key" -e "@inventory/prod/group_vars/all.yml"
+$ ansible localhost -m ansible.builtin.debug -a var="some.the_secret" -e "@inventory/prod/group_vars/all.yml"
 localhost | SUCCESS => {
     "changed": false,
     "nomad.secret_key": "your secret value"
 }
 ```
+
+### 🔐 Nomad ACL configuring
+
+First, you should set the playbook variable `nomad_acl_enabled: true`. When playbook running is done, you need to connect using SSH on any server node, and execute:
+
+```shell
+$ nomad acl bootstrap
+Accessor ID  = <accessor-id-goes-here>
+Secret ID    = <secret-id-goes-here>
+Name         = Bootstrap Token
+Type         = management
+Global       = true
+...
+```
+
+Save this **Secret ID** somewhere (something like a KeePass usage is strongly recommended)!
+
+> 🔥 Care should be taken not to lose all of your management tokens. If you do, you will need to [re-bootstrap the ACL subsystem](https://learn.hashicorp.com/tutorials/nomad/access-control-bootstrap?in=nomad/access-control#re-bootstrap-acl-system).
+
+You can verify the token is working (execute on any node; correct `NOMAD_TOKEN` is needed for future operations anyway):
+
+```shell
+$ nomad status # should fails
+Error querying jobs: Unexpected response code: 403 (Permission denied)
+
+$ export NOMAD_TOKEN="<secret-id-goes-here>"
+
+$ nomad status
+No running jobs
+```
+
+It's time to deploy [ACL policies](roles/nomad/files/policies) for our cluster roles. First, we should create a namespace (named `apps`) for our future deployments:
+
+```shell
+$ nomad namespace apply -description "Cluster applications" apps
+
+$ nomad namespace list
+Name     Description
+apps     Cluster applications
+default  Default shared namespace # <-- new namespace
+```
+
+And after that:
+
+```shell
+# for the cluster management (using UI, for example)
+$ nomad acl policy apply -description "Operators policy" devops /etc/nomad.d/policies/devops.policy.hcl
+Successfully wrote "devops" ACL policy!
+
+# for applications deployments (using CI and scripts)
+$ nomad acl policy apply -description "Apps deployment policy" deploy /etc/nomad.d/policies/deploy.policy.hcl
+Successfully wrote "deploy" ACL policy!
+
+$ nomad acl policy list
+Name    Description
+deploy  Apps deployment policy
+devops  Operators policy
+```
+
+> 🔥 On any policies update, you should re-execute those commands **manually**!
+
+Let's [generate tokens](https://learn.hashicorp.com/tutorials/nomad/access-control-tokens?in=nomad/access-control#generate-a-client-token) for the cluster management:
+
+```shell
+$ nomad acl token create -name="Devops" -policy="devops"
+Accessor ID  = <accessor-id-goes-here>
+Secret ID    = <devops-secret-id-goes-here> # <-- save this somewhere
+Policies     = [devops]
+...
+
+$ nomad acl token create -name="Deploy" -policy="deploy"
+Accessor ID  = <accessor-id-goes-here>
+Secret ID    = <deploy-secret-id-goes-here> # <-- save this somewhere
+Policies     = [deploy]
+...
+```
+
+You should generate a new token for each DevOps or **cluster manager** (do not share them between people; the generated token can be revoked at any time). The **first** token should be used for **cluster management** (it allows to auth in the Nomad dashboard), and the **second** - for apps **deploying only**.
 
 ## Pretty cool links
 
