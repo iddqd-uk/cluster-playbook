@@ -1,0 +1,54 @@
+http:
+  services: # ---------------------------------------------------------------------------
+{% if traefik_consul_ui_enabled | bool %}
+    consul-ui-service:
+      loadBalancer:
+        servers:
+          - url: "http://consul.service.consul:{{ consul_ui_port | default(8500) }}"
+        healthcheck:
+          path: /ui/
+          interval: 10s
+          timeout: 2s
+{% endif %}
+{% if traefik_nomad_ui_enabled | bool %}
+    nomad-ui-service:
+      loadBalancer:
+        servers:
+          - url: "http://nomad.service.consul:{{ nomad_http_port | default(4646) }}"
+        healthcheck:
+          path: /ui/
+          interval: 10s
+          timeout: 2s
+{% endif %}
+
+  routers: # ----------------------------------------------------------------------------
+{% if traefik_consul_ui_enabled | bool %}
+    consul-ui:
+      rule: Host(`consul.{{ root_domain | mandatory }}`)
+      entrypoints: [https]
+      tls: {certResolver: lets-encrypt}
+      service: consul-ui-service
+{% endif %}
+{% if traefik_nomad_ui_enabled | bool %}
+    nomad-ui:
+      rule: Host(`nomad.{{ root_domain | mandatory }}`)
+      entrypoints: [https]
+      tls: {certResolver: lets-encrypt}
+      service: nomad-ui-service
+{% endif %}
+
+    traefik-dashboard-router:
+      rule: Host(`traefik.{{ root_domain | mandatory }}`)
+      entrypoints: [https]
+      service: api@internal
+      tls: {certResolver: lets-encrypt}
+
+{% if traefik_metrics | bool %}
+    prometheus-metrics:
+      rule: "PathPrefix(`/metrics`)"
+      entrypoints: [service-only]
+      service: prometheus@internal
+{% endif %}
+
+
+

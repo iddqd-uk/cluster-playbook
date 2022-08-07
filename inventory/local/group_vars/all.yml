@@ -5,9 +5,11 @@ ansible_port: 202 # aka SSH port
 ansible_python_interpreter: /usr/bin/python3
 
 datacenter_name: "primary-dc"
+root_domain: "192-168-56-116.nip.io"
 
 consul_http_port: 8500
 consul_secret_key: "Ya8gOTDqQOwU/VZM6ZW1zzIjG4awADVlTEZ/Fi+MB9k="
 
 nomad_acl_enabled: true
+nomad_http_port: 4646
 nomad_secret_key: "baLVhqjEKeUkJi4do1M9VfJbKRfdUp4n5/vpBwyJSJ0="

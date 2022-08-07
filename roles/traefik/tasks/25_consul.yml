@@ -1,0 +1,41 @@
+---
+
+- name: Register Traefik as a service for Consul
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/consul.d/traefik.hcl
+    content: |
+      service {
+        id = "{{ traefik_consul_service_name }}"
+        name = "{{ traefik_consul_service_name }}"
+        address = "{{ ansible_host }}"
+        port = 443
+
+        tags = ["http", "https"]
+
+        # https://www.consul.io/docs/discovery/checks
+        checks = [{
+          id = "http-traefik-port"
+          service_id = "{{ traefik_consul_service_name }}"
+          interval = "7s"
+          tcp = "{{ ansible_host }}:80"
+          timeout = "3s"
+        },{
+          id = "https-traefik-port"
+          service_id = "{{ traefik_consul_service_name }}"
+          interval = "7s"
+          tcp = "{{ ansible_host }}:443"
+          timeout = "3s"
+        },{
+          id = "http-traefik-ping"
+          service_id = "{{ traefik_consul_service_name }}"
+          interval = "7s"
+          http = "http://{{ private_ip | mandatory }}:8081/ping"
+          method = "GET"
+          timeout = "3s"
+        }]
+      }
+    owner: consul
+    group: consul
+    mode: 0644
+  notify: [restart consul]

@@ -1,0 +1,41 @@
+# {{ ansible_managed }}
+
+# File source: <https://github.com/traefik/traefik/blob/master/contrib/systemd/traefik.service>
+# And this gist: https://gist.github.com/ubergesundheit/7c9d875befc2d7bfd0bf43d8b3862d85
+
+[Unit]
+Description=Traefik
+Documentation=https://doc.traefik.io/traefik/
+
+Wants=network-online.target
+After=network-online.target
+
+Wants=consul.service
+After=consul.service
+
+AssertPathExists=/etc/traefik/static.yml
+AssertPathExists=/etc/traefik/dynamic.yml
+
+[Service]
+# Run traefik as its own user (create new user with: useradd -r -s /bin/false -U -M traefik)
+EnvironmentFile=/etc/traefik/traefik.env
+User=traefik
+Group=traefik
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+# configure service behavior
+Type=notify
+ExecStart="{{ traefik_bin }}" --configFile=/etc/traefik/static.yml
+#Restart=always
+Restart=on-failure
+WatchdogSec=1s
+
+# Limit the number of file descriptors; see `man systemd.exec` for more limit settings
+LimitNOFILE=1048576
+
+# limit number of processes in this unit
+#LimitNPROC=1
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,94 @@
+# {{ ansible_managed }}
+
+# Common docs: https://doc.traefik.io/traefik/getting-started/configuration-overview/
+
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+experimental:
+  http3: true # enables HTTP/3 protocol on the entryPoint
+
+entryPoints:
+  http:
+    address: ':80'
+    http:
+      redirections: # HTTPS redirection (80 to 443)
+        entryPoint:
+          to: https
+          scheme: https
+  https:
+    address: ':443'
+    http:
+      tls:
+        certResolver: lets-encrypt
+    http3:
+      advertisedPort: 443
+  service-only:
+    address: '{{ private_ip | mandatory }}:8081'
+
+log: # https://doc.traefik.io/traefik/observability/logs/
+  # By default, the level is set to ERROR. Alternative logging levels are DEBUG, PANIC,
+  # FATAL, ERROR, WARN, and INFO.
+  level: '{{ traefik_log_level }}'
+
+  # By default, the logs use a text format (`common`), but you can also ask for the
+  # `json` format in the format option.
+  format: '{{ traefik_log_format }}'
+
+{% if traefik_access_log | bool %}
+accessLog: {} # Enable access logs (https://doc.traefik.io/traefik/observability/access-logs/)
+{% endif %}
+
+api:
+  dashboard: true # Enable Dashboard
+  insecure: false
+
+ping: # enable the API handler `/ping` (https://doc.traefik.io/traefik/operations/ping/)
+  entryPoint: service-only
+
+{% if traefik_metrics | bool %}
+metrics:
+  prometheus:
+    entryPoint: https
+    manualRouting: true
+{% endif %}
+
+certificatesResolvers:
+  lets-encrypt:
+    acme:
+{% if traefik_acme_email | length > 0 %}
+      email: {{ traefik_acme_email }}
+{% endif %}
+      storage: /etc/traefik/acme/acme.json # /etc/traefik/acme is a glusterfs mounted volume
+{% if traefik_acme_lets_encrypt_staging | bool %}
+      caServer: https://acme-staging-v02.api.letsencrypt.org/directory
+{% endif %}
+      dnsChallenge:
+        provider: cloudflare
+        delayBeforeCheck: 0
+        resolvers: ["1.0.0.1:53", "1.1.1.1:53", "8.8.8.8:53"]
+
+providers:
+  file: # Docs: https://doc.traefik.io/traefik/providers/file/
+    filename: /etc/traefik/dynamic.yml
+
+  consulCatalog: # Docs: https://doc.traefik.io/traefik/providers/consul-catalog/
+    # The prefix for Consul Catalog tags defining Traefik labels.
+    prefix: traefik
+
+    endpoint:
+      address: "127.0.0.1:{{ consul_http_port | default(8500) }}"
+      scheme: "http"
+
+    # danger - https://github.com/traefik/traefik/issues/7591#issuecomment-753932314
+    #cache: true
+
+    # Expose Consul Catalog services by default in Traefik.
+    exposedByDefault: false
+
+    # Name of the Traefik service in Consul Catalog.
+    serviceName: {{ traefik_consul_service_name }}
+
+    # Enable Consul Connect support.
+    #connectAware: true

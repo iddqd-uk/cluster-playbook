@@ -1,7 +1,7 @@
 <div align="center">
 <img src="https://hsto.org/webt/zj/06/rh/zj06rhrcow4fallwh7bxki1-aw4.png" width="200"/>
 
-# `iddqd.uk` ansible playbook
+# `iddqd.uk` infrastructure playbook
 
 [![Release version][badge_release_version]][link_releases]
 [![Build Status][badge_build]][link_actions]
@@ -17,12 +17,15 @@ The core of the cluster consists of the following applications:
 - [Consul][consul] (service-discovery and distributed key-value storage)
 - [Nomad][nomad] (simple and flexible scheduler and orchestrator)
 - [Docker][docker] (each run application deployed as a docker container)
+- [Traefik][traefik] (ingress service)
 
 In addition, I decided to use the following applications:
 
 - [Gluster][gluster] (persistent data across each node in the cluster, e.g. for the Nomad containers)
 
 Since this is a simple cluster (minimal nodes count is 2), Nomad, Consul and Gluster are used as a server and client on each machine simultaneously. Load balancing, logs aggregation, monitoring, alerting, and other services are not included - to keep this playbook simple I prefer to install them separately (as a services in docker containers).
+
+Traefik is installed on one node (without replication), so it is not an HA solution, but scalable for the backend services (you can deploy it on as many nodes as you need).
 
 ## 🗒 Requirements
 
@@ -45,9 +48,17 @@ $ ansible-playbook ./site.yml -i ./inventory/local # for local
 $ ansible-playbook ./site.yml -i ./inventory/prod  # for production
 ```
 
-> :warning: Some services bind on all interfaces (`0.0.0.0`), so you should protect them with firewall rules, or use an external firewall!
+> :warning: Some services bind on all interfaces (`0.0.0.0`), so you should protect them with firewall rules, or use an external firewall.
+>
+> Ideally, the private network should **not** have any restrictions. For a public network all ports must be closed from the outside, except for the following:
+> - `22` (SSH, playbook variable `ansible_port`, **each** node)
+> - `80` (HTTP, Node with Traefik **only**)
+> - `443` (HTTP + TLS, Node with Traefik **only**)
 
-### 😎 Secrets
+### ⁉ How to...
+
+<details>
+<summary><strong>😎 ...manage playbook secrets?</strong></summary>
 
 For a making encrypted value in the playbook, you can use the following command (file with the vault password `./.vault_password` should exist):
 
@@ -73,8 +84,10 @@ localhost | SUCCESS => {
     "nomad.secret_key": "your secret value"
 }
 ```
+</details>
 
-### 🔐 Nomad ACL configuring
+<details>
+<summary><strong>🔐 ...set up Nomad ACL?</strong></summary>
 
 First, you should set the playbook variable `nomad_acl_enabled: true`. When playbook running is done, you need to connect using SSH on any server node, and execute:
 
@@ -152,7 +165,9 @@ Policies     = [deploy]
 
 You should generate a new token for each DevOps or **cluster manager** (do not share them between people; the generated token can be revoked at any time). The **first** token should be used for **cluster management** (it allows to auth in the Nomad dashboard), and the **second** - for apps **deploying only**.
 
-## Pretty cool links
+</details>
+
+### 🕸 Pretty cool links
 
 - [Why you should take a look at Nomad before jumping on Kubernetes](https://atodorov.me/2021/02/27/why-you-should-take-a-look-at-nomad-before-jumping-on-kubernetes/)
 
@@ -167,6 +182,7 @@ You should generate a new token for each DevOps or **cluster manager** (do not s
 [consul]:https://www.consul.io/
 [nomad]:https://www.nomadproject.io/
 [docker]:https://www.docker.com/
+[traefik]:https://traefik.io/traefik/
 [gluster]:https://www.gluster.org/
 [ansible]:https://www.ansible.com/
 [ansible_vault]:https://docs.ansible.com/ansible/latest/user_guide/vault.html

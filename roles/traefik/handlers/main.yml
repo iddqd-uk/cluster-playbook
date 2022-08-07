@@ -1,0 +1,13 @@
+---
+
+- name: reload systemd
+  become: true
+  ansible.builtin.systemd: {daemon_reload: true}
+
+- name: restart traefik
+  become: true
+  ansible.builtin.service: {name: traefik, state: restarted}
+
+- name: restart consul
+  become: true
+  ansible.builtin.service: {name: consul, state: restarted}
