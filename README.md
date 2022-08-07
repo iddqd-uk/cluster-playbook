@@ -10,26 +10,30 @@
 
 ## 📖 Overview
 
-This repository contains [Ansible][ansible] playbook for installing and configuring the dead simple Nomad cluster for the `iddqd.uk`. Where possible, it is automated with bots and GitHub actions.
+This repository contains an [Ansible][ansible] playbook for installing and configuring the dead simple Nomad cluster for the `iddqd.uk` resources and applications. Where possible, working is automated with bots and GitHub actions.
 
-## 📁 Directories & files
+The core of the cluster consists of the following applications:
 
-This Git repository contains the following directories & files:
+- [Consul][consul] (service-discovery and distributed key-value storage)
+- [Nomad][nomad] (simple and flexible scheduler and orchestrator)
+- [Docker][docker] (each run application deployed as a docker container)
 
-```text
-📁 inventory          # hosts definitions (IP addresses) and variables
-├─📁 local            # local environment (eg. for the local testing)
-└─📁 prod             # production environment
-📁 roles              # ansible roles, config files, etc
-├─📁 ...
-└─📁 ...
-📄 site.yml           # playbook
-📄 docker-compose.yml # for using docker as a local environment
-📄 Makefile           # development sugar
-```
+In addition, I decided to use the following applications:
+
+- [Gluster][gluster] (persistent data across each node in the cluster, e.g. for the Nomad containers)
+
+Visually, the cluster diagram can be represented as follows:
+
+<div align="center">
+<img src="https://user-images.githubusercontent.com/7326800/183288705-fe4ffbc8-557c-4c52-ac3e-34c81c8b1fcc.png" width="500"/>
+</div>
+
+Since this is a simple cluster (minimal nodes count is 2), Nomad, Consul and Gluster are used as a server and client on each machine simultaneously. Load balancing, logs aggregation, monitoring, alerting, and other services are not included - to keep this playbook simple I prefer to install them separately.
 
 ## Requirements
 
+- 2 (or more) machines
+- 2 network interfaces on each machine - public and private
 - Successfully tested on Debian 11 (amd64)
 
 ## Running
@@ -38,7 +42,7 @@ Please, follow the next checklist:
 
 - [x] Make a file `./.vault_password` with the [vault password][ansible_vault]
 - [x] Install playbook requirements - `ansible-galaxy install -r ./requirements.yml`
-- [x] Check the inventory file (for required environment - `local|production`)
+- [x] Check (or create new) the inventory file (for required environment - `local|production`)
 
 After the checklist passing, you can run the playbook:
 
@@ -86,5 +90,9 @@ localhost | SUCCESS => {
 [link_actions]:https://github.com/iddqd-uk/cluster-playbook/actions
 [link_license]:https://github.com/iddqd-uk/cluster-playbook/blob/master/LICENSE
 
+[consul]:https://www.consul.io/
+[nomad]:https://www.nomadproject.io/
+[docker]:https://www.docker.com/
+[gluster]:https://www.gluster.org/
 [ansible]:https://www.ansible.com/
 [ansible_vault]:https://docs.ansible.com/ansible/latest/user_guide/vault.html

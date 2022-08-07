@@ -6,7 +6,7 @@ consul_version: 1.12.3
 consul_bin_dir: /usr/local/share/consul
 consul_bin: /usr/bin/consul
 
-consul_dns_port: 8600      # DNS server (-1 to disable, default 8600, TCP and UDP)
+consul_dns_port: 53        # DNS server (-1 to disable, default 8600, TCP and UDP)
 consul_http_port: 8500     # HTTP API (-1 to disable, default 8500, TCP only)
 consul_grpc_port: 8502     # gRPC API (-1 to disable, default -1)
 consul_rpc_port: 8300      # Server RPC (default 8300, TCP only)

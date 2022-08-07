@@ -100,6 +100,13 @@ client {
     reserved_ports = "{{ nomad_reserved_ports | join(',') }}"
   }
 
+  # Is used to make volumes available to jobs. The key of the stanza corresponds to
+  # the name of the volume for use in the source parameter of a "host" type volume.
+  host_volume "persistent-data" {
+    path = "/opt/nomad/storage-data"
+    read_only = false
+  }
+
   # Specifies the maximum number of allocations which a client will track before
   # triggering a garbage collection of terminal allocations.
   gc_max_allocs = 5

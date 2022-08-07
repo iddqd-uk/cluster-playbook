@@ -9,11 +9,13 @@ After=network-online.target
 # When using Nomad with Consul it is not necessary to start Consul first. These
 # lines start Consul before Nomad as an optimization to avoid Nomad logging
 # that Consul is unavailable at startup.
-#Wants=consul.service
-#After=consul.service
+Wants=consul.service
+After=consul.service
 
 [Service]
 EnvironmentFile=-/etc/nomad.d/nomad.env
+User=nomad
+Group=nomad
 ExecReload=/bin/kill -HUP $MAINPID
 ExecStart="{{ nomad_bin }}" agent -config /etc/nomad.d
 KillMode=process
