@@ -1,0 +1,102 @@
+# {{ ansible_managed }}
+
+{% set protect_nomad_ui = (traefik_nomad_ui_auth_login | length > 0) and (traefik_nomad_ui_auth_password | length > 0) %}
+{% set protect_consul_ui = (traefik_consul_ui_auth_login | length > 0) and (traefik_consul_ui_auth_password | length > 0) %}
+{% set protect_traefik_dashboard = (traefik_dashboard_auth_login | length > 0) and (traefik_dashboard_auth_password | length > 0) %}
+
+http:
+  middlewares: # ------------------------------------------------------------------------
+    service-endpoints-rate-limit: # Rate limit for service endpoints
+      rateLimit:
+        average: 100
+        burst: 70
+
+{% if protect_nomad_ui %}
+{% set realm = 'nomad' %}
+{% set login = traefik_nomad_ui_auth_login %}
+{% set pass = traefik_nomad_ui_auth_password %}
+    nomad-ui-auth: # Nomad UI auth middleware
+      digestAuth:
+        removeHeader: true
+        realm: {{ realm }}
+        users: "{{ login }}:{{ realm }}:{{ (login + ':' + realm + ':' + pass) | hash('md5') }}"
+{% endif %}
+
+{% if protect_consul_ui %}
+{% set realm = 'consul' %}
+{% set login = traefik_consul_ui_auth_login %}
+{% set pass = traefik_consul_ui_auth_password %}
+    consul-ui-auth: # Consul UI auth middleware
+      digestAuth:
+        removeHeader: true
+        realm: {{ realm }}
+        users: "{{ login }}:{{ realm }}:{{ (login + ':' + realm + ':' + pass) | hash('md5') }}"
+{% endif %}
+
+{% if protect_traefik_dashboard %}
+{% set realm = 'traefik' %}
+{% set login = traefik_dashboard_auth_login %}
+{% set pass = traefik_dashboard_auth_password %}
+    traefik-dashboard-auth: # Traefik Dashboard auth middleware
+      digestAuth:
+        removeHeader: true
+        realm: {{ realm }}
+        users: "{{ login }}:{{ realm }}:{{ (login + ':' + realm + ':' + pass) | hash('md5') }}"
+{% endif %}
+
+  routers: # ----------------------------------------------------------------------------
+{% if traefik_consul_ui_enabled | bool %}
+    consul-router: # Consul (https://consul.iddqd.uk/)
+      rule: Host(`consul.{{ root_domain | mandatory }}`)
+      entryPoints: [https]
+      tls: {certResolver: lets-encrypt}
+      service: consul-service
+      middlewares: [service-endpoints-rate-limit{% if protect_consul_ui %},consul-ui-auth{% endif %}]
+{% endif %}
+
+    nomad-api-router: # Nomad API (https://nomad.iddqd.uk/v1/, should be without any auth for the deployments)
+      rule: Host(`nomad.{{ root_domain | mandatory }}`) && PathPrefix(`/v1/`)
+      entryPoints: [https]
+      tls: {certResolver: lets-encrypt}
+      service: nomad-service
+      middlewares: [service-endpoints-rate-limit]
+      priority: 10
+
+{% if traefik_nomad_ui_enabled | bool %}
+    nomad-ui-router: # Nomad UI (https://nomad.iddqd.uk/)
+      rule: Host(`nomad.{{ root_domain | mandatory }}`)
+      entryPoints: [https]
+      tls: {certResolver: lets-encrypt}
+      service: nomad-service
+      middlewares: [{% if protect_nomad_ui %}nomad-ui-auth{% endif %}]
+      priority: 5
+{% endif %}
+
+{% if traefik_metrics | bool %}
+    prometheus-metrics-router: # Prometheus metrics (http://127.0.0.1:8081/metrics)
+      rule: "PathPrefix(`/metrics`)"
+      entryPoints: [service-only]
+      service: prometheus@internal
+{% endif %}
+
+{% if traefik_dashboard_enabled | bool %}
+    traefik-dashboard-router: # Traefik dashboard (https://traefik.iddqd.uk/)
+      rule: Host(`traefik.{{ root_domain | mandatory }}`)
+      entryPoints: [https]
+      service: api@internal
+      tls: {certResolver: lets-encrypt}
+      middlewares: [service-endpoints-rate-limit{% if protect_traefik_dashboard %},traefik-dashboard-auth{% endif %}]
+{% endif %}
+
+  services: # ---------------------------------------------------------------------------
+{% if traefik_consul_ui_enabled | bool %}
+    consul-service: # Consul service
+      loadBalancer:
+        servers:
+          - url: "http://consul.service.consul:{{ consul_ui_port | default(8500) }}"
+{% endif %}
+
+    nomad-service: # Nomad service (for API and UI)
+      loadBalancer:
+        servers:
+          - url: "http://nomad.service.consul:{{ nomad_http_port | default(4646) }}"

@@ -1,9 +1,9 @@
 ---
 
-- include: 10_change_default_ssh_port.yml
-- include: 20_set_hostname.yml
-- include: 30_common_packages.yml
-- include: 40_install_ntp.yml
-- include: 50_set_timezone.yml
-- include: 60_update_motd.yml
-- include: 70_upgrade_os.yml
+- import_tasks: 10_change_default_ssh_port.yml
+- import_tasks: 20_set_hostname.yml
+- import_tasks: 30_common_packages.yml
+- import_tasks: 40_install_ntp.yml
+- import_tasks: 50_set_timezone.yml
+- import_tasks: 60_update_motd.yml
+- import_tasks: 70_upgrade_os.yml

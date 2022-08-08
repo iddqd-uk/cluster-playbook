@@ -1,6 +1,6 @@
 ---
 
-- name: Create "os upgraded" lock file # run only once
+- name: Create "OS upgraded" lock file # run only once
   become: true
   ansible.builtin.copy:
     dest: /etc/apt/os-upgraded.lock
@@ -9,7 +9,25 @@
     owner: root
     group: root
     force: false
-  notify: [upgrade os, reboot machine]
+  register: _os_need_to_be_upgraded
 
-- name: Force all notified handlers
-  ansible.builtin.meta: flush_handlers
+- name: Upgrade OS # noqa no-handler
+  become: true
+  ansible.builtin.apt: {upgrade: dist, update_cache: true}
+  when: _os_need_to_be_upgraded.changed
+
+- name: Reboot the machine # noqa no-handler
+  become: true
+  ansible.builtin.reboot: {}
+  when: _os_need_to_be_upgraded.changed
+  register: _os_rebooted
+
+- name: Wait for SSH service to start # noqa no-handler
+  ansible.builtin.wait_for:
+    port: '{{ ansible_port }}'
+    state: started
+    host: '{{ ansible_host }}'
+    timeout: 60
+    sleep: 0
+  connection: local
+  when: _os_rebooted.changed

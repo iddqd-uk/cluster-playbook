@@ -1,0 +1,34 @@
+---
+
+- name: Register UI as a service for Consul
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/consul.d/nomad-ui.hcl
+    content: |
+      service {
+        name = "{{ nomad_consul_server_service_name }}"
+        id = "nomad-http"
+        address = "{{ private_ip | mandatory }}" # same as `bind_addr`
+        port = {{ nomad_http_port }}
+
+        # https://www.consul.io/docs/discovery/checks
+        checks = [{
+          id = "httpUIHealth"
+          service_id = "nomad-http"
+          http = "http://{{ private_ip | mandatory }}:{{ nomad_http_port }}/ui/"
+          method = "GET"
+          interval = "10s"
+          timeout = "3s"
+        },{
+          id = "httpApiHealth"
+          service_id = "nomad-http"
+          http = "http://{{ private_ip | mandatory }}:{{ nomad_http_port }}/v1/status/leader"
+          method = "GET"
+          interval = "10s"
+          timeout = "3s"
+        }]
+      }
+    owner: consul
+    group: consul
+    mode: 0644
+  notify: [restart consul]

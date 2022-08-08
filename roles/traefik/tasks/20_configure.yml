@@ -1,0 +1,31 @@
+---
+
+- name: Static config file
+  become: true
+  ansible.builtin.template:
+    src: static.yml.j2
+    dest: /etc/traefik/static.yml
+    owner: traefik
+    group: traefik
+    mode: 0644
+  notify: [restart traefik]
+
+- name: Dynamic config file
+  become: true
+  ansible.builtin.template:
+    src: dynamic.yml.j2
+    dest: /etc/traefik/dynamic.yml
+    owner: traefik
+    group: traefik
+    mode: 0644
+  notify: [restart traefik]
+
+- name: Environment file
+  become: true
+  ansible.builtin.template:
+    src: traefik.env.j2
+    dest: /etc/traefik/traefik.env
+    owner: traefik
+    group: root
+    mode: 0600 # important
+  notify: [restart traefik]

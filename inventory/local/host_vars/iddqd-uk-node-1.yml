@@ -1,0 +1,2 @@
+consul_bootstrap: true
+nomad_node_class: XS

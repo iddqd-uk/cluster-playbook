@@ -2,6 +2,7 @@ version: '3.2'
 
 volumes:
   tmp-data: {}
+  root-ansible-data: {}
 
 services:
   ansible:
@@ -11,8 +12,9 @@ services:
       PS1: '\[\033[1;32m\]\[\033[1;36m\][\u@ansible] \[\033[1;34m\]\w\[\033[0;35m\] \[\033[1;36m\]# \[\033[0m\]'
     volumes:
       - .:/data:ro
-      - ~/.ssh:/root/.ssh:ro
+      - ~/.ssh:/root/.ssh:rw
       - tmp-data:/tmp:rw
+      - root-ansible-data:/root/.ansible:rw
 
   ansible-lint:
     image: quay.io/ansible/creator-ee:v0.6.0

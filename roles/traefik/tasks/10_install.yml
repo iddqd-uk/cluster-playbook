@@ -1,0 +1,101 @@
+---
+
+- name: Create a directory for distributions
+  become: true
+  ansible.builtin.file:
+    path: '{{ traefik_bin_dir }}'
+    state: directory
+    group: root
+    owner: root
+    mode: 0755
+
+- name: Check distribute existing
+  ansible.builtin.stat: {path: '{{ traefik_bin_dir }}/traefik-{{ traefik_version }}'}
+  register: _traefik_exists
+
+- name: Download distributive
+  when: not _traefik_exists.stat.exists
+  block:
+    - name: Create temporary directory
+      become: false
+      ansible.builtin.tempfile: {state: directory, suffix: traefik}
+      register: _traefik_tmp_dir
+
+    - name: 'Download distributive archive (version {{ traefik_version }})'
+      ansible.builtin.get_url:
+        url: 'https://github.com/traefik/traefik/releases/download/v{{ traefik_version }}/traefik_v{{ traefik_version }}_linux_amd64.tar.gz'
+        dest: '{{ _traefik_tmp_dir.path }}/dist.tar.gz'
+        mode: 0644
+
+    - name: Extract files
+      ansible.builtin.unarchive:
+        src: '{{ _traefik_tmp_dir.path }}/dist.tar.gz'
+        dest: '{{ _traefik_tmp_dir.path }}'
+        decrypt: false
+        remote_src: true
+
+    - name: Copy binary file
+      become: true
+      ansible.builtin.copy:
+        src: '{{ _traefik_tmp_dir.path }}/traefik'
+        dest: '{{ traefik_bin_dir }}/traefik-{{ traefik_version }}'
+        owner: root
+        group: root
+        mode: 0755
+        remote_src: true
+
+    - name: Give the binary file ability to bind to privileged ports
+      become: true
+      changed_when: false
+      ansible.builtin.command:
+        cmd: "/usr/sbin/setcap 'cap_net_bind_service=+ep' '{{ traefik_bin_dir }}/traefik-{{ traefik_version }}'"
+
+    - name: Create a symlink on a downloaded binary file
+      become: true
+      ansible.builtin.file:
+        path: '{{ traefik_bin }}'
+        src: '{{ traefik_bin_dir }}/traefik-{{ traefik_version }}'
+        state: link
+        group: root
+        owner: root
+        mode: 0755
+      notify: [restart traefik]
+
+  always:
+    - name: Remove temporary directory
+      ansible.builtin.file: {path: '{{ _traefik_tmp_dir.path }}', state: absent}
+
+- name: Ensure group exists
+  become: true
+  ansible.builtin.group: {name: traefik, state: present}
+
+- name: Ensure user exists
+  become: true
+  ansible.builtin.user:
+    name: traefik
+    shell: /bin/false
+    home: /home/traefik
+    password_lock: true
+    create_home: false
+    group: traefik
+    state: present
+
+- name: Create directories
+  become: true
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: directory
+    group: traefik
+    owner: traefik
+    mode: 0755
+  loop: [/etc/traefik, /etc/traefik/acme]
+
+- name: Create unit file
+  become: true
+  ansible.builtin.template:
+    src: traefik.service.j2
+    dest: /etc/systemd/system/traefik.service
+    group: root
+    owner: root
+    mode: 0644
+  notify: [reload systemd, restart traefik]

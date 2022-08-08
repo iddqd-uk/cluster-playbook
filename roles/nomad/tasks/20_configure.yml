@@ -1,0 +1,55 @@
+---
+
+- name: Gathers facts about remote host
+  ansible.builtin.gather_facts: {parallel: true}
+
+- name: Parse interfaces
+  ansible.builtin.set_fact:
+    private_net_interface_name: '{{ item }}'
+  when: >-
+    ('ipv4' in hostvars[inventory_hostname]['ansible_' + item]) and
+    (hostvars[inventory_hostname]['ansible_' + item]['ipv4']['address'] == private_ip)
+  with_items: ['{{ ansible_interfaces }}']
+
+- name: Configure Nomad
+  become: true
+  ansible.builtin.template:
+    src: nomad.hcl.j2
+    dest: /etc/nomad.d/nomad.hcl
+    owner: nomad
+    group: nomad
+    mode: 0644
+    validate: "nomad config validate %s" # https://www.nomadproject.io/docs/commands/config/validate
+  vars:
+    nomad_reserved_ports:
+      - "1-1024" # system ports
+      - "{{ consul_dns_port | default(8600) }}"
+      - "{{ consul_http_port | default(8500) }}"
+      - "{{ consul_grpc_port | default(8502) }}"
+      - "{{ consul_rpc_port | default(8300) }}"
+      - "{{ consul_serf_lan_port | default(8301) }}"
+      - "{{ consul_serf_wan_port | default(8302) }}"
+      - "{{ nomad_http_port }}"
+      - "{{ nomad_rpc_port }}"
+      - "{{ nomad_serf_port }}"
+      - "{{ ansible_port | default(22) }}"
+  notify: [restart nomad]
+
+- name: Create Nomad ENV file
+  become: true
+  ansible.builtin.template:
+    src: nomad.env.j2
+    dest: /etc/nomad.d/nomad.env
+    owner: nomad
+    group: nomad
+    mode: 0644
+  notify: [restart nomad]
+
+- name: Copy policies
+  become: true
+  ansible.builtin.copy:
+    src: policies/ # the last slash is mandatory
+    dest: /etc/nomad.d/policies/
+    owner: nomad
+    group: nomad
+    mode: 0755

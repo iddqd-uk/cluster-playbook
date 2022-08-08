@@ -1,0 +1,37 @@
+name: deploy
+
+on:
+  workflow_dispatch: {inputs: {}} # only at manual start
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy playbook changes
+    runs-on: ubuntu-20.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: gacts/fetch-doppler-secret@v1
+        with:
+          token: ${{ secrets.DOPPLER_INFRA_PROJECT_TOKEN }}
+          project: infra
+          secret-name: ANSIBLE_VAULT_KEY
+          save-to-file: .vault_password
+
+      - uses: gacts/fetch-doppler-secret@v1
+        id: ssh-key
+        with:
+          token: ${{ secrets.DOPPLER_INFRA_PROJECT_TOKEN }}
+          project: infra
+          secret-name: SSH_KEY_PRIVATE
+
+      - uses: dawidd6/action-ansible-playbook@v2
+        with:
+          playbook: site.yml
+          key: ${{ steps.ssh-key.outputs.secret }}
+          requirements: requirements.yml
+          options: --inventory ./inventory/prod

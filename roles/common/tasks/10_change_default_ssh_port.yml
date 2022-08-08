@@ -2,7 +2,7 @@
 
 - name: Change default SSH port
   block:
-    - name: 'Check SSH port ({{ ansible_port }})'
+    - name: Check SSH port
       ansible.builtin.wait_for:
         port: '{{ ansible_port }}'
         state: started
@@ -10,6 +10,7 @@
         timeout: '{{ ssh_check_timeout | default(5) }}'
         sleep: 0
       connection: local
+      no_log: true
       register: _ssh_port
   rescue:
     - name: Swap SSH port
@@ -18,18 +19,23 @@
         _new_ssh_port: '{{ ansible_port }}'
         ansible_port: 22 # fallback port
 
-    - name: 'Setup alternate ({{ _new_ssh_port }}) SSH port on the remote host'
+    - name: Setup alternate SSH port on the remote host
       when: _ssh_port.failed
       become: true
       ansible.builtin.lineinfile:
         dest: /etc/ssh/sshd_config
         regexp: '^Port'
         line: 'Port {{ _new_ssh_port }}'
-      notify: [restart ssh]
+      no_log: true
+      register: _ssh_port_updated
 
-    - name: Force all notified handlers
-      ansible.builtin.meta: flush_handlers
+    - name: Restart SSH service
+      become: true
+      ansible.builtin.service: {name: ssh, state: restarted}
+      when: _ssh_port_updated.changed
 
-    - name: 'Set SSH port to {{ _new_ssh_port }}'
+    - name: Set new SSH port
       ansible.builtin.set_fact: {ansible_port: '{{ _new_ssh_port }}'}
-  always: []
+  always:
+    - name: Gathers facts about remote host # make an attempt to connect
+      ansible.builtin.gather_facts: {}

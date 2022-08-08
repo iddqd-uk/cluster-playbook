@@ -8,6 +8,10 @@ on:
   pull_request:
     paths-ignore: ['**.md']
 
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   gitleaks:
     name: Gitleaks
@@ -27,6 +31,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - run: ansible-galaxy install -r ./requirements.yml
+
       - run: echo "foobar" > ./.vault_password
 
       - run: ansible-playbook ./site.y*ml --syntax-check
@@ -35,7 +41,7 @@ jobs:
     name: Best practices checker for Ansible
     runs-on: ubuntu-20.04
     needs: [gitleaks]
-    container: quay.io/ansible/creator-ee:v0.4.2
+    container: quay.io/ansible/creator-ee:v0.6.0
     steps:
       - uses: actions/checkout@v3
 

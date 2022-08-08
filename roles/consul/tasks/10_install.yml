@@ -17,6 +17,7 @@
   when: not _consul_exists.stat.exists
   block:
     - name: Create temporary directory
+      become: false
       ansible.builtin.tempfile: {state: directory, suffix: consul}
       register: _consul_tmp_dir
 
@@ -24,7 +25,7 @@
       ansible.builtin.get_url:
         url: 'https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_linux_amd64.zip'
         dest: '{{ _consul_tmp_dir.path }}/dist.zip'
-        mode: 644
+        mode: 0644
 
     - name: Extract files
       ansible.builtin.unarchive:
@@ -78,7 +79,7 @@
     group: consul
     state: present
 
-- name: Create directories directories
+- name: Create directories
   become: true
   ansible.builtin.file:
     path: '{{ item }}'

@@ -1,0 +1,10 @@
+---
+
+collections:
+  - name: gluster.gluster # https://docs.ansible.com/ansible/latest/collections/gluster/gluster/index.html
+    version: '>=1.0.2'
+    type: galaxy
+
+  - name: ansible.posix # https://docs.ansible.com/ansible/latest/collections/ansible/posix/index.html
+    version: '>=1.4.0'
+    type: galaxy

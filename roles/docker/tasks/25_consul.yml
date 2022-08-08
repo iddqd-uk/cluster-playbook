@@ -1,0 +1,26 @@
+---
+
+- name: Register docker as a service for Consul
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/consul.d/docker.hcl
+    content: |
+      service {
+        name = "docker"
+        id = "{{ inventory_hostname }}-docker"
+        address = "{{ private_ip | mandatory }}"
+        tags = ["http"]
+
+        # https://www.consul.io/docs/discovery/checks
+        checks = [{
+          id = "docker-metrics-port-check"
+          service_id = "docker"
+          tcp = "{{ private_ip | mandatory }}:{{ docker_metrics_port }}"
+          interval = "15s"
+          timeout = "1s"
+        }]
+      }
+    owner: consul
+    group: consul
+    mode: 0644
+  notify: [restart consul]

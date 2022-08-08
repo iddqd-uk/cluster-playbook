@@ -1,0 +1,18 @@
+---
+
+- name: Create daemon configuration file
+  become: true
+  ansible.builtin.copy: # docs: https://docs.docker.com/engine/reference/commandline/dockerd/#daemon-configuration-file
+    content: |
+      {
+        "experimental": true,
+        "metrics-addr": "{{ private_ip | mandatory }}:{{ docker_metrics_port }}",
+        "log-driver": "json-file",
+        "dns": ["{{ private_ip | mandatory }}", "1.1.1.1", "1.0.0.1", "8.8.8.8"],
+        "dns-search": ["service.consul"]
+      }
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: docker
+    mode: 0640
+  notify: [restart docker]

@@ -1,0 +1,252 @@
+# {{ ansible_managed }}
+
+# Full configuration options can be found at https://www.nomadproject.io/docs/configuration
+
+# Specifies a local directory used to store agent state. Client nodes use this directory
+# by default to store temporary allocation data as well as cluster information. Server
+# nodes use this directory to store cluster state, including the replicated log and
+# snapshot data. This must be specified as an absolute path.
+data_dir = "/opt/nomad"
+
+# Specifies the data center of the local agent. All members of a datacenter should share
+# a local LAN connection.
+datacenter = "{{ datacenter_name | mandatory }}"
+
+# Specifies the region the Nomad agent is a member of. A region typically maps to
+# a geographic region, for example us, with potentially multiple zones, which map
+# to datacenters such as us-west and us-east.
+region = "global"
+
+# Specifies if Nomad should not check for updates and security bulletins.
+disable_update_check = true
+
+# Specifies if the agent should log to syslog. This option only works on Unix based
+# systems.
+enable_syslog = true
+
+# Specifies the verbosity of logs the Nomad agent will output. Valid log levels
+# include WARN, INFO, or DEBUG in increasing order of verbosity.
+log_level = "INFO"
+
+# Specifies the name of the local node. This value is used to identify individual
+# agents. When specified on a server, the name must be unique within the region.
+name = "{{ inventory_hostname | mandatory }}"
+
+# Specifies which address the Nomad agent should bind to for network services, including
+# the HTTP interface as well as the internal gossip protocol and RPC mechanism. This
+# should be specified in IP format, and can be used to easily bind all network services
+# to the same address. It is also possible to bind the individual services to different
+# addresses using the `addresses` configuration option.
+bind_addr = "{{ private_ip | mandatory }}"
+
+#advertise {
+#  # Defaults to the first private IP address
+#  http = "{{ private_ip }}"
+#  rpc  = "{{ private_ip }}"
+#  serf = "{{ private_ip }}"
+#}
+
+# Specifies the bind address for individual network services. Any values configured
+# in this stanza take precedence over the default bind_addr
+addresses {
+  http = "0.0.0.0"
+#  rpc = "0.0.0.0"
+#  serf = "0.0.0.0"
+}
+
+# Specifies the network ports used for different services required by the Nomad
+# agent.
+ports {
+  # The port used to run the HTTP server.
+  http = {{ nomad_http_port }}
+
+  # The port used for internal RPC communication between agents and servers,
+  # and for inter-server traffic for the consensus algorithm (raft).
+  rpc = {{ nomad_rpc_port }}
+
+  # The port used for the gossip protocol for cluster membership. Both TCP and
+  # UDP should be routable between the server nodes on this port.
+  serf = {{ nomad_serf_port }}
+}
+
+# Configures the Nomad agent to enable ACLs and tunes various ACL parameters.
+# https://www.nomadproject.io/docs/configuration/acl
+acl {
+  enabled = {{nomad_acl_enabled | bool | string | lower }}
+}
+
+# The client stanza configures the Nomad agent to accept jobs as assigned by the Nomad
+# server, join the cluster, and specify driver-specific configuration.
+client {
+  enabled = true
+
+  # Specifies that Nomad should reserve a portion of the node's resources from
+  # receiving tasks. This can be used to target a certain capacity usage for the
+  # node.
+  # https://www.nomadproject.io/docs/configuration/client#reserved-parameters
+  reserved {
+    # Specifies the amount of CPU to reserve, in MHz
+    cpu = {{ nomad_reserved_cpu }}
+
+    # Specifies the amount of memory to reserve, in MB
+    memory = {{ nomad_reserved_memory }}
+
+    # Specifies the amount of disk to reserve, in MB
+    disk = {{ nomad_reserved_disk }}
+
+    # Specifies a comma-separated list of ports to reserve on all fingerprinted network
+    # devices. Ranges can be specified by using a hyphen separated the two inclusive
+    # ends
+    reserved_ports = "{{ nomad_reserved_ports | join(',') }}"
+  }
+
+  # Is used to make volumes available to jobs. The key of the stanza corresponds to
+  # the name of the volume for use in the source parameter of a "host" type volume.
+  host_volume "persistent-data" {
+    path = "/opt/nomad/storage-data"
+    read_only = false
+  }
+
+  # Specifies the maximum number of allocations which a client will track before
+  # triggering a garbage collection of terminal allocations.
+  gc_max_allocs = 5
+
+{% if nomad_node_class | length > 0 %}
+  # Specifies an arbitrary string used to logically group client nodes by user-defined
+  # class. This can be used during job placement as a filter.
+  node_class = "{{ nomad_node_class }}"
+{% endif %}
+
+  # Specifies the name of the interface to force network fingerprinting on.
+  network_interface = "{{ private_net_interface_name | mandatory }}"
+
+  # How the Nomad agent will discover and connect to Nomad servers.
+  server_join { # https://www.nomadproject.io/docs/configuration/server_join
+    retry_interval = "15s"
+    retry_join = [
+{% for host in nomad_retry_join_hosts %}
+      "{{ hostvars[host]['private_ip'] }}", # {{ hostvars[host]['inventory_hostname'] }}
+{% endfor %}
+    ]
+  }
+}
+
+# The server stanza configures the Nomad agent to operate in server mode to participate
+# in scheduling decisions, register with service discovery, handle join failures, and
+# more.
+server {
+  # Specifies if this agent should run in server mode. All other server options depend
+  # on this value being set.
+  enabled = true
+
+  # Specifies the secret key to use for encryption of Nomad server's gossip network
+  # traffic.
+  encrypt = "{{ nomad_secret_key | mandatory }}"
+
+  # Specifies the number of server nodes to wait for before bootstrapping. It is most
+  # common to use the odd-numbered integers 3 or 5 for this value, depending on the
+  # cluster size. A value of 1 does not provide any fault tolerance and is not
+  # recommended for production use cases.
+  bootstrap_expect = {{ (nomad_retry_join_hosts | length) + 1 }}
+
+  # https://www.nomadproject.io/docs/configuration/server#configuring-scheduler-config
+  default_scheduler_config = {
+    memory_oversubscription_enabled = true
+  }
+
+  # How the Nomad agent will discover and connect to Nomad servers.
+  server_join { # https://www.nomadproject.io/docs/configuration/server_join
+    retry_interval = "15s"
+    retry_join = [
+{% for host in nomad_retry_join_hosts %}
+      "{{ hostvars[host]['private_ip'] }}", # {{ hostvars[host]['inventory_hostname'] }}
+{% endfor %}
+    ]
+  }
+}
+
+# The ui stanza configures the Nomad agent's web UI.
+ui {
+  # Specifies whether the web UI is enabled. If disabled, the /ui/ path will return
+  # an empty web page.
+  enabled = true
+}
+
+# Configures Nomad's publication of metrics and telemetry to third-party systems.
+# https://www.nomadproject.io/docs/configuration/telemetry#common
+telemetry {
+  # Specifies if gauge values should be prefixed with the local hostname
+  disable_hostname = true
+
+  # Nomad should publish runtime metrics of allocations
+  publish_allocation_metrics = true
+
+  # Nomad should publish runtime metrics of nodes
+  publish_node_metrics = true
+
+  # Specifies whether the agent should make Prometheus formatted metrics
+  # available at `/v1/metrics?format=prometheus`
+  prometheus_metrics = true
+}
+
+# The consul stanza configures the Nomad agent's communication with Consul for service
+# discovery and key-value integration. When configured, tasks can register themselves
+# with Consul, and the Nomad cluster can automatically bootstrap itself.
+consul {
+  address = "127.0.0.1:{{ consul_http_port | mandatory }}"
+
+  # Specifies if Nomad should advertise its services in Consul.
+  auto_advertise = true
+
+  # Specifies if Consul health checks should bind to the advertise address. By default,
+  # this is the first HTTP address. If no HTTP address is specified, it will fall back
+  # to the bind_addr
+  checks_use_advertise = true
+
+  # Specifies if the Nomad servers should automatically discover and join other Nomad
+  # servers by searching for the Consul service name defined in the
+  # server_service_name option. This search only happens if the server does not have
+  # a leader.
+  server_auto_join = false
+
+  # Specifies the name of the service in Consul for the Nomad servers.
+  server_service_name = "{{ nomad_consul_server_service_name }}"
+
+  # Specifies if the Nomad clients should automatically discover servers in the same
+  # region by searching for the Consul service name defined in the server_service_name
+  # option.
+  client_auto_join = false
+
+  # Specifies the name of the service in Consul for the Nomad clients.
+  client_service_name = "{{ nomad_consul_client_service_name }}"
+
+  # Specifies optional Consul tags to be registered with the Nomad server and agent
+  # services.
+  tags = []
+}
+
+# Docker driver config: https://bit.ly/3K4OAFh
+plugin "docker" {
+  config {
+    endpoint = "unix:///var/run/docker.sock"
+
+    #auth {
+    #  config = "/etc/docker-auth.json"
+    #  helper = "docker-credential-aws"
+    #}
+
+    gc {
+      image = true
+      image_delay = "5m"
+      container = false
+    }
+
+    #volumes {
+    #  enabled = true
+    #  selinuxlabel = "z"
+    #}
+
+    allow_privileged = false
+    #allow_caps = ["CHOWN", "NET_RAW" ... ]
+  }
+}

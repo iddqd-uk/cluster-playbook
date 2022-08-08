@@ -1,0 +1,31 @@
+---
+
+# renovate: source=github-tags name=traefik/traefik
+traefik_version: 2.8.1
+
+traefik_bin_dir: /usr/local/share/traefik
+traefik_bin: /usr/bin/traefik
+
+traefik_log_level: "INFO" # DEBUG, PANIC, FATAL, ERROR, WARN, or INFO
+traefik_log_format: "common" # or json
+traefik_access_log: false
+traefik_metrics: false
+traefik_consul_service_name: "traefik"
+
+traefik_dashboard_enabled: true
+traefik_dashboard_auth_login: ""
+traefik_dashboard_auth_password: ""
+
+traefik_consul_ui_enabled: true
+traefik_consul_ui_auth_login: ""
+traefik_consul_ui_auth_password: ""
+
+traefik_nomad_ui_enabled: true
+traefik_nomad_ui_auth_login: ""
+traefik_nomad_ui_auth_password: ""
+
+traefik_acme_email: admin@domain.com # for cert notification emails
+traefik_acme_lets_encrypt_staging: true # use a staging server for let's encrypt cert issuing
+
+cloudflare_api_email: ""
+cloudflare_zone_api_key: ""

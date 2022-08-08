@@ -1,10 +1,20 @@
 ---
 
 - name: Common tasks
+  gather_facts: false
   hosts: [all]
   tags: [common]
   roles: [{role: common}]
 
-- name: Consul masters
-  hosts: [masters]
-  roles: [{role: consul-master, tags: [consul]}]
+- name: Install required software on each host
+  hosts: [all]
+  roles: # order is important
+    - {role: consul, tags: [consul]}
+    - {role: glusterfs, tags: [glusterfs]}
+    - {role: docker, tags: [docker]}
+    - {role: nomad, tags: [nomad]}
+
+- name: Install Traefik
+  hosts: [iddqd-uk-node-1]
+  roles:
+    - {role: traefik, tags: [traefik]}

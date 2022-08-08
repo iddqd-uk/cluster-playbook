@@ -1,0 +1,2 @@
+consul_bootstrap: true
+nomad_node_class: XS # 1 vCPU, 2 GB Ram, 20 GB Disk

@@ -1,0 +1,26 @@
+# Glusterfs installation tasks (docs: <https://docs.gluster.org/en/main/Install-Guide/Install/#for-debian>)
+---
+
+- name: Add GPG apt Key
+  become: true
+  ansible.builtin.apt_key:
+    url: https://download.gluster.org/pub/gluster/glusterfs/10/rsa.pub
+    state: present
+
+- name: Add repository
+  become: true
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb https://download.gluster.org/pub/gluster/glusterfs/10/LATEST/{{ ansible_distribution }}/{{ ansible_distribution_release | lower }}/amd64/apt
+      {{ ansible_distribution_release | lower }} main
+    filename: glusterfs
+    state: present
+    update_cache: false
+
+- name: Install GlusterFS packages
+  become: true
+  ansible.builtin.apt:
+    name: [glusterfs-client, glusterfs-server]
+    state: present
+    cache_valid_time: 604800 # in seconds, 60×60×24×7 = 7 days
+    update_cache: true

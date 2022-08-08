@@ -1,0 +1,9 @@
+---
+
+- name: restart docker
+  become: true
+  ansible.builtin.service: {name: docker, state: restarted}
+
+- name: restart consul
+  become: true
+  ansible.builtin.service: {name: consul, state: restarted}

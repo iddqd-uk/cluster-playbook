@@ -1,0 +1,105 @@
+---
+
+- name: Create a directory for distributions
+  become: true
+  ansible.builtin.file:
+    path: '{{ nomad_bin_dir }}'
+    state: directory
+    group: root
+    owner: root
+    mode: 0755
+
+- name: Check distribute existing
+  ansible.builtin.stat: {path: '{{ nomad_bin_dir }}/nomad-{{ nomad_version }}'}
+  register: _nomad_exists
+
+- name: Download distributive
+  when: not _nomad_exists.stat.exists
+  block:
+    - name: Create temporary directory
+      become: false
+      ansible.builtin.tempfile: {state: directory, suffix: nomad}
+      register: _nomad_tmp_dir
+
+    - name: 'Download distributive archive (version {{ nomad_version }})'
+      ansible.builtin.get_url:
+        url: 'https://releases.hashicorp.com/nomad/{{ nomad_version }}/nomad_{{ nomad_version }}_linux_amd64.zip'
+        dest: '{{ _nomad_tmp_dir.path }}/dist.zip'
+        mode: 0644
+
+    - name: Extract files
+      ansible.builtin.unarchive:
+        src: '{{ _nomad_tmp_dir.path }}/dist.zip'
+        dest: '{{ _nomad_tmp_dir.path }}'
+        remote_src: true
+
+    - name: Copy binary file
+      become: true
+      ansible.builtin.copy:
+        src: '{{ _nomad_tmp_dir.path }}/nomad'
+        dest: '{{ nomad_bin_dir }}/nomad-{{ nomad_version }}'
+        owner: root
+        group: root
+        mode: 0755
+        remote_src: true
+
+    - name: Create a symlink on a downloaded binary file
+      become: true
+      ansible.builtin.file:
+        path: '{{ nomad_bin }}'
+        src: '{{ nomad_bin_dir }}/nomad-{{ nomad_version }}'
+        state: link
+        group: root
+        owner: root
+        mode: 0755
+      notify: [restart nomad]
+
+  always:
+    - name: Remove temporary directory
+      ansible.builtin.file: {path: '{{ _nomad_tmp_dir.path }}', state: absent}
+
+- name: Ensure group exists
+  become: true
+  ansible.builtin.group: {name: nomad, state: present}
+
+- name: Ensure user exists
+  become: true
+  ansible.builtin.user:
+    name: nomad
+    shell: /bin/false
+    home: /home/nomad
+    password_lock: true
+    create_home: false
+    group: nomad
+    state: present
+
+- name: Determine available groups
+  ansible.builtin.getent: {database: group}
+
+- name: Add nomad user to docker group
+  become: true
+  when: "'docker' in ansible_facts.getent_group"
+  ansible.builtin.user:
+    name: nomad
+    groups: docker
+    append: true
+
+- name: Create directories
+  become: true
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: directory
+    group: nomad
+    owner: nomad
+    mode: 0755
+  loop: [/opt/nomad, /etc/nomad.d]
+
+- name: Create unit file
+  become: true
+  ansible.builtin.template:
+    src: nomad.service.j2
+    dest: /etc/systemd/system/nomad.service
+    group: root
+    owner: root
+    mode: 0644
+  notify: [reload systemd, restart nomad]

@@ -1,7 +1,7 @@
 ---
 
-- include: 10_install.yml
-- include: 20_configure.yml
+- import_tasks: 10_install.yml
+- import_tasks: 20_configure.yml
 
 - name: Force all notified handlers
   ansible.builtin.meta: flush_handlers
@@ -12,6 +12,8 @@
     name: consul
     state: started
     enabled: true
+
+- import_tasks: 30_resolvers.yml
 
 #  - name: Get service facts
 #    ansible.builtin.service_facts:
