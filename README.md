@@ -53,7 +53,7 @@ $ ansible-playbook ./site.yml -i ./inventory/prod  # for production
 > :warning: Some services bind on all interfaces (`0.0.0.0`), so you should protect them with firewall rules, or use an external firewall.
 >
 > Ideally, the private network should **not** have any restrictions. For a public network all ports must be closed from the outside, except for the following:
-> - `22` (SSH, playbook variable `ansible_port`, **each** node)
+> - `<22>` (SSH, playbook variable `ansible_port`, on **each** node)
 > - `80` (HTTP, Node with Traefik **only**)
 > - `443` (HTTP + TLS, Node with Traefik **only**)
 
