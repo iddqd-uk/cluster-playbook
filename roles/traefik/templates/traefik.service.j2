@@ -32,7 +32,7 @@ Type=notify
 ExecStart="{{ traefik_bin }}" --configFile=/etc/traefik/static.yml
 #Restart=always
 Restart=on-failure
-WatchdogSec=1s
+WatchdogSec=10s
 
 # Limit the number of file descriptors; see `man systemd.exec` for more limit settings
 LimitNOFILE=1048576
