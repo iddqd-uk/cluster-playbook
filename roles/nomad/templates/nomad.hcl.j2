@@ -72,7 +72,7 @@ ports {
 # Configures the Nomad agent to enable ACLs and tunes various ACL parameters.
 # https://www.nomadproject.io/docs/configuration/acl
 acl {
-  enabled = {{nomad_acl_enabled | bool | string | lower }}
+  enabled = {{ nomad_acl_enabled | bool | string | lower }}
 }
 
 # The client stanza configures the Nomad agent to accept jobs as assigned by the Nomad
@@ -186,7 +186,12 @@ telemetry {
 
   # Specifies whether the agent should make Prometheus formatted metrics
   # available at `/v1/metrics?format=prometheus`
-  prometheus_metrics = true
+  prometheus_metrics = {{ nomad_prometheus_metrics_enabled | bool | string | lower }}
+
+{% if nomad_datadog_address | length > 0 %}
+  # Specifies the address of a DataDog statsd server to forward metrics to.
+  datadog_address = {{ nomad_datadog_address }}
+{% endif %}
 }
 
 # The consul stanza configures the Nomad agent's communication with Consul for service

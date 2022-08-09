@@ -21,3 +21,5 @@ nomad_consul_client_service_name: "nomad-client"
 nomad_secret_key: "" # Generate your own key using following command: `docker run --rm ghcr.io/resinstack/nomad:v1.3.2r0 operator keygen`
 nomad_retry_join_hosts: []
 nomad_acl_enabled: false
+nomad_prometheus_metrics_enabled: false
+nomad_datadog_address: ""
