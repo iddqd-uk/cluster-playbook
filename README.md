@@ -5,7 +5,6 @@
 
 [![Tests Status][badge_tests]][link_actions]
 [![Deploy Status][badge_deploy]][link_deploy]
-[![License][badge_license]][link_license]
 </div>
 
 ## 📖 Overview
@@ -197,11 +196,9 @@ That's all, all should work fine after that.
 
 [badge_tests]:https://img.shields.io/github/workflow/status/iddqd-uk/cluster-playbook/tests/main?style=for-the-badge&logo=github&logoColor=white&label=tests
 [badge_deploy]:https://img.shields.io/github/workflow/status/iddqd-uk/cluster-playbook/deploy/main?style=for-the-badge&logo=github&logoColor=white&label=deploy
-[badge_license]:https://img.shields.io/github/license/iddqd-uk/cluster-playbook.svg?longCache=true&style=for-the-badge
 
 [link_actions]:https://github.com/iddqd-uk/cluster-playbook/actions
 [link_deploy]:https://github.com/iddqd-uk/cluster-playbook/actions/workflows/deploy.yml
-[link_license]:https://github.com/iddqd-uk/cluster-playbook/blob/main/LICENSE
 
 [consul]:https://www.consul.io/
 [nomad]:https://www.nomadproject.io/
