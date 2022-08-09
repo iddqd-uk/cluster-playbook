@@ -1,7 +1,7 @@
 name: deploy
 
 on:
-  workflow_dispatch: {inputs: {}} # only at manual start
+  workflow_dispatch: {} # only at manual start
 
 concurrency:
   group: deploy

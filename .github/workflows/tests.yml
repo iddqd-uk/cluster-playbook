@@ -26,7 +26,6 @@ jobs:
   ansible-syntax-check:
     name: Ansible Syntax Check
     runs-on: ubuntu-20.04
-    needs: [gitleaks]
     container: cytopia/ansible:2.11
     steps:
       - uses: actions/checkout@v3
@@ -40,7 +39,6 @@ jobs:
   ansible-lint:
     name: Best practices checker for Ansible
     runs-on: ubuntu-20.04
-    needs: [gitleaks]
     container: quay.io/ansible/creator-ee:v0.6.0
     steps:
       - uses: actions/checkout@v3
