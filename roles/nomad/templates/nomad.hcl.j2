@@ -190,7 +190,7 @@ telemetry {
 
 {% if nomad_datadog_address | length > 0 %}
   # Specifies the address of a DataDog statsd server to forward metrics to.
-  datadog_address = {{ nomad_datadog_address }}
+  datadog_address = "{{ nomad_datadog_address }}"
 {% endif %}
 }
 
