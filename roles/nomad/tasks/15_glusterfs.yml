@@ -26,4 +26,4 @@
     state: directory
     group: nomad
     owner: nomad
-    mode: 0750
+    mode: 0755
