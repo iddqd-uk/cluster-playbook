@@ -165,6 +165,14 @@ service {
   }]
 }
 
+# Configure where Consul sends its runtime telemetry.
+telemetry {
+{% if consul_datadog_address | length > 0 %}
+  # Specifies the address of a DogStatsD instance in the format host:port.
+  dogstatsd_addr = "{{ consul_datadog_address }}"
+{% endif %}
+}
+
 # allows setting options for the Connect feature
 # https://www.consul.io/docs/agent/config/config-files#connect-parameters
 connect {
