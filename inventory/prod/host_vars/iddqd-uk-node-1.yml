@@ -1,2 +1,5 @@
 consul_bootstrap: true
+
 nomad_node_class: XS # 1 vCPU, 2 GB Ram, 20 GB Disk
+nomad_reserved_cpu: 600 # MHz
+nomad_reserved_memory: 512 # MB
