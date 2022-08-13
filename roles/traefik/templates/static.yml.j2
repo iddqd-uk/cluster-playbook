@@ -24,6 +24,8 @@ entryPoints:
         certResolver: lets-encrypt
     http3:
       advertisedPort: 443
+  http-proxy:
+    address: '{{ ansible_host }}:2080/tcp'
   service-only:
     address: '{{ private_ip | mandatory }}:8081/tcp'
 
