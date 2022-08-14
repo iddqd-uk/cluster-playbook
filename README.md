@@ -79,7 +79,7 @@ Encryption successful
 And otherwise, for the secret reading you can:
 
 ```shell
-$ v
+$ ansible localhost -m ansible.builtin.debug -a var="some.the_secret" -e "@inventory/prod/group_vars/all.yml"
 localhost | SUCCESS => {
     "changed": false,
     "nomad.secret_key": "your secret value"
