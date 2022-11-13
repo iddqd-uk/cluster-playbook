@@ -6,7 +6,7 @@ volumes:
 
 services:
   ansible:
-    image: cytopia/ansible:2.11 # Image page: <https://hub.docker.com/r/cytopia/ansible>
+    image: cytopia/ansible:2.13 # Image page: <https://hub.docker.com/r/cytopia/ansible>
     environment:
       HISTFILE: /tmp/.shell_history
       PS1: '\[\033[1;32m\]\[\033[1;36m\][\u@ansible] \[\033[1;34m\]\w\[\033[0;35m\] \[\033[1;36m\]# \[\033[0m\]'
