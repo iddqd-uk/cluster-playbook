@@ -194,8 +194,8 @@ That's all, all should work fine after that.
 
 - [Why you should take a look at Nomad before jumping on Kubernetes](https://atodorov.me/2021/02/27/why-you-should-take-a-look-at-nomad-before-jumping-on-kubernetes/)
 
-[badge_tests]:https://img.shields.io/github/workflow/status/iddqd-uk/cluster-playbook/tests/main?style=for-the-badge&logo=github&logoColor=white&label=tests
-[badge_deploy]:https://img.shields.io/github/workflow/status/iddqd-uk/cluster-playbook/deploy/main?style=for-the-badge&logo=github&logoColor=white&label=deploy
+[badge_tests]:https://img.shields.io/github/actions/workflow/status/iddqd-uk/cluster-playbook/tests.yml?branch=main&style=for-the-badge&logo=github&logoColor=white&label=tests
+[badge_deploy]:https://img.shields.io/github/actions/workflow/status/iddqd-uk/cluster-playbook/deploy.yml?style=for-the-badge&logo=github&logoColor=white&label=deploy
 
 [link_actions]:https://github.com/iddqd-uk/cluster-playbook/actions
 [link_deploy]:https://github.com/iddqd-uk/cluster-playbook/actions/workflows/deploy.yml
