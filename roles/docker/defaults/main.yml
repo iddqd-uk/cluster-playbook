@@ -1,6 +1,6 @@
 ---
 
 # renovate: source=github-releases name=moby/moby
-docker_version: 20.10.22
+docker_version: 20.10.23
 
 docker_metrics_port: 9323
