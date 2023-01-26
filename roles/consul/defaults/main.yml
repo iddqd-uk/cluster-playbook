@@ -1,7 +1,7 @@
 ---
 
 # renovate: source=github-tags name=hashicorp/consul
-consul_version: 1.14.3
+consul_version: 1.14.4
 
 consul_bin_dir: /usr/local/share/consul
 consul_bin: /usr/bin/consul
