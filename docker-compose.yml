@@ -17,6 +17,6 @@ services:
       - root-ansible-data:/root/.ansible:rw
 
   ansible-lint:
-    image: quay.io/ansible/creator-ee:v0.14.1
+    image: quay.io/ansible/creator-ee:v0.15.0
     volumes: [.:/data:ro]
     working_dir: /data
