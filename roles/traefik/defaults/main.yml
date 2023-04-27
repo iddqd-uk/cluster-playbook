@@ -1,7 +1,7 @@
 ---
 
 # renovate: source=github-tags name=traefik/traefik
-traefik_version: 2.10.0
+traefik_version: 2.10.1
 
 traefik_bin_dir: /usr/local/share/traefik
 traefik_bin: /usr/bin/traefik
