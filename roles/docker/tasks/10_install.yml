@@ -20,8 +20,8 @@
   become: true
   ansible.builtin.apt:
     name:
-      - 'docker-ce=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}'
-      - 'docker-ce-cli=5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}'
+      - 'docker-ce=5:{{ docker_version }}-1~{{ ansible_distribution | lower }}.11~{{ ansible_distribution_release | lower }}'
+      - 'docker-ce-cli=5:{{ docker_version }}-1~{{ ansible_distribution | lower }}.11~{{ ansible_distribution_release | lower }}'
       - containerd.io
     state: present
     cache_valid_time: 21600 # in seconds, 60 × 60 × 6 = 6 hours
