@@ -1,7 +1,7 @@
 ---
 
 # renovate: source=github-releases name=hashicorp/nomad
-nomad_version: 1.7.4
+nomad_version: 1.7.5
 
 nomad_bin_dir: /usr/local/share/nomad
 nomad_bin: /usr/bin/nomad
